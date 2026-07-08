@@ -1,0 +1,53 @@
+{# Only the <table> carries the swap id: the scrollable .grid-wrap around it
+   (in map_detail.html) survives each cell edit, so the scroll position does
+   too. #}
+{% if grid_rows %}
+<table class="challenges" id="challenge-grid">
+    <thead>
+        <tr>
+            <th class="room">room</th>
+            {% for ch in grid_challenges %}
+            <th>{{ ch.name }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in grid_rows %}
+        <tr>
+            <th class="room">{{ row.room_name }}</th>
+            {% for cell in row.cells %}
+            <td>
+                {% if cell.kind == "bool" %}
+                {# An unchecked box sends no field at all — the handler
+                   reads that as "clear the cell". #}
+                <input class="cell-check" type="checkbox" name="value" value="1"
+                       {% if cell.value and cell.value != "0" %}checked{% endif %}
+                       hx-post="/cell/{{ row.room_id }}/{{ cell.challenge_id }}"
+                       hx-trigger="change"
+                       hx-target="#challenge-grid"
+                       hx-swap="outerHTML">
+                {% else %}
+                <input class="cell" name="value"
+                       value="{% if cell.value %}{{ cell.value }}{% endif %}"
+                       hx-post="/cell/{{ row.room_id }}/{{ cell.challenge_id }}"
+                       hx-trigger="change"
+                       hx-target="#challenge-grid"
+                       hx-swap="outerHTML">
+                {% endif %}
+            </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <th class="room">sob</th>
+            {% for s in grid_sob %}
+            <td class="sob">{% if s %}{{ s }}{% else %}&mdash;{% endif %}</td>
+            {% endfor %}
+        </tr>
+    </tfoot>
+</table>
+{% else %}
+<p class="empty" id="challenge-grid">(no rooms yet)</p>
+{% endif %}

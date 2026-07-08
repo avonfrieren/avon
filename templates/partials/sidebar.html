@@ -23,6 +23,11 @@
                 {% else %}
                 <li class="empty">(no campaigns yet)</li>
                 {% endfor %}
+                <li>
+                    <a href="#" class="new-link" hx-get="/campaigns/new" hx-target="#content">
+                        + new campaign
+                    </a>
+                </li>
             </ul>
         </details>
     </li>
@@ -40,6 +45,11 @@
                 {% else %}
                 <li class="empty">(no standalone maps yet)</li>
                 {% endfor %}
+                <li>
+                    <a href="#" class="new-link" hx-get="/maps/new" hx-target="#content">
+                        + new map
+                    </a>
+                </li>
             </ul>
         </details>
     </li>
