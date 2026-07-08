@@ -1,0 +1,17 @@
+<h2>new map</h2>
+<form class="create-form" hx-post="/maps" hx-target="#content">
+    <label>name* <input name="name" required autofocus></label>
+    <label>rooms* <input name="nb_rooms" type="number" min="1" max="999" required></label>
+    <label>campaign
+        <select name="campaign_id">
+            <option value="">(standalone)</option>
+            {% for c in campaigns %}
+            <option value="{{ c.id }}">{{ c.name }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label>cleared <input name="cleared" type="checkbox" value="1"></label>
+    <label>cleared on <input name="clearing_date" type="date"></label>
+    {% if error %}<p class="form-error">{{ error }}</p>{% endif %}
+    <button type="submit">create</button>
+</form>

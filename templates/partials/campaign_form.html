@@ -1,0 +1,8 @@
+<h2>new campaign</h2>
+<form class="create-form" hx-post="/campaigns" hx-target="#content">
+    <label>name* <input name="name" required autofocus></label>
+    <label>link <input name="link" type="url" placeholder="https://..."></label>
+    <label>collab <input name="is_collab" type="checkbox" value="1"></label>
+    {% if error %}<p class="form-error">{{ error }}</p>{% endif %}
+    <button type="submit">create</button>
+</form>

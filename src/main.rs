@@ -29,6 +29,17 @@ async fn main() {
     let app = Router::new()
         .route("/", get(handlers::explorer::index))
         .route("/map/:id", get(handlers::explorer::map_detail))
+        .route(
+            "/cell/:room_id/:challenge_id",
+            axum::routing::post(handlers::explorer::update_cell),
+        )
+        .route("/campaigns/new", get(handlers::explorer::campaign_form))
+        .route(
+            "/campaigns",
+            axum::routing::post(handlers::explorer::create_campaign),
+        )
+        .route("/maps/new", get(handlers::explorer::map_form))
+        .route("/maps", axum::routing::post(handlers::explorer::create_map))
         .route("/imgs/:filename", get(handlers::explorer::image_view))
         .nest_service("/static", ServeDir::new("static"))
         .with_state(state);

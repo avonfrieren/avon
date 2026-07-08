@@ -1,11 +1,5 @@
 <h2>{{ map.name }}</h2>
-<ul class="map-facts">
-    {% if map.campaign_id %}
-    <li>Part of a campaign</li>
-    {% else %}
-    <li>Standalone map</li>
-    {% endif %}
-    {% if map.nb_rooms %}<li>Rooms: {{ map.nb_rooms }}</li>{% endif %}
-    <li>Cleared: {{ map.cleared }}</li>
-    {% if map.clearing_date %}<li>Cleared on: {{ map.clearing_date }}</li>{% endif %}
-</ul>
+
+<div class="grid-wrap">
+    {% include "partials/challenge_grid.html" %}
+</div>

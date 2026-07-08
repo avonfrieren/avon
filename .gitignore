@@ -11,3 +11,6 @@ README.md
 # Editor/OS cruft
 .DS_Store
 *.swp
+
+# Claude Code local permission grants — machine-specific
+.claude/settings.local.json
