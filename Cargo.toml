@@ -1,0 +1,14 @@
+[package]
+name = "avon"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = "0.7"
+tokio = { version = "1", features = ["full"] }
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "macros", "chrono"] }
+tera = "1"
+serde = { version = "1", features = ["derive"] }
+dotenvy = "0.15"
+tower-http = { version = "0.5", features = ["fs"] }
+chrono = { version = "0.4", features = ["serde"] }

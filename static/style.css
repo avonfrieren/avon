@@ -1,0 +1,58 @@
+@font-face {
+    font-family: 'Fira Code';
+    src: url('/static/fonts/firacode_regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #000;
+    color: #fff;
+    font-family: 'Fira Code', monospace;
+    height: 100vh;
+    overflow: hidden;
+}
+
+a {
+    color: #fff;
+}
+
+ul {
+    list-style: none;
+    padding-left: 16px;
+}
+
+.explorer {
+    position: relative;
+    height: 100vh;
+}
+
+.sidebar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 8px;
+}
+
+.sidebar .tree {
+    padding-left: 0;
+}
+
+#content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+#content img {
+    max-width: 80vw;
+    max-height: 80vh;
+}
