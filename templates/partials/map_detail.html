@@ -1,5 +1,26 @@
 <h2>{{ map.name }}</h2>
+<a href="#" class="del-link"
+   hx-delete="/map/{{ map.id }}"
+   hx-confirm="Delete map '{{ map.name }}' with all its rooms, challenges and values?">
+    &times; delete map
+</a>
 
 <div class="grid-wrap">
     {% include "partials/challenge_grid.html" %}
 </div>
+
+{# Lives outside the grid partial so it neither scrolls with the table nor
+   gets swapped on grid updates — it just re-renders the grid on submit. #}
+<form class="add-challenge"
+      hx-post="/map/{{ map.id }}/challenges"
+      hx-target="#challenge-grid"
+      hx-swap="outerHTML"
+      hx-on::after-request="if(event.detail.successful) this.reset()">
+    <input name="name" placeholder="challenge" required>
+    <select name="kind">
+        <option value="int">int</option>
+        <option value="time">time</option>
+        <option value="bool">bool</option>
+    </select>
+    <button type="submit">+ add challenge</button>
+</form>

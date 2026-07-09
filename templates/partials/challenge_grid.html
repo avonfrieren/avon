@@ -7,14 +7,31 @@
         <tr>
             <th class="room">room</th>
             {% for ch in grid_challenges %}
-            <th>{{ ch.name }}</th>
+            <th>
+                <input class="col-name" name="name" value="{{ ch.name }}"
+                       size="{{ ch.name | length + 1 }}"
+                       hx-post="/challenge/{{ ch.id }}"
+                       hx-trigger="change"
+                       hx-target="#challenge-grid"
+                       hx-swap="outerHTML"><a href="#" class="del-x"
+                   hx-delete="/challenge/{{ ch.id }}"
+                   hx-confirm="Delete challenge '{{ ch.name }}' and all its values?"
+                   hx-target="#challenge-grid"
+                   hx-swap="outerHTML">&times;</a>
+            </th>
             {% endfor %}
         </tr>
     </thead>
     <tbody>
         {% for row in grid_rows %}
         <tr>
-            <th class="room">{{ row.room_name }}</th>
+            <th class="room">
+                <input class="room-name" name="name" value="{{ row.room_name }}"
+                       hx-post="/room/{{ row.room_id }}"
+                       hx-trigger="change"
+                       hx-target="#challenge-grid"
+                       hx-swap="outerHTML">
+            </th>
             {% for cell in row.cells %}
             <td>
                 {% if cell.kind == "bool" %}
