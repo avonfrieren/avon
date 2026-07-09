@@ -284,3 +284,87 @@ ul {
     border: 1px dashed #fff;
     padding: 4px 8px;
 }
+
+/* The map title doubles as its rename field. */
+input.map-name {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font: inherit;
+    text-align: center;
+}
+
+input.map-name:focus {
+    outline: 1px solid #fff;
+    outline-offset: 2px;
+}
+
+/* Inline rename input in the sidebar (campaigns). */
+.rename-inline {
+    background: #000;
+    color: #fff;
+    border: 1px solid #fff;
+    font: inherit;
+    padding: 2px 4px;
+}
+
+/* Ctrl+K search palette. */
+#search-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    display: none;
+    z-index: 10;
+}
+
+#search-overlay.open {
+    display: block;
+}
+
+#search-box {
+    width: min(480px, 90vw);
+    margin: 20vh auto 0;
+    background: #000;
+    border: 1px solid #fff;
+    padding: 8px;
+}
+
+#search-input {
+    width: 100%;
+    background: #000;
+    color: #fff;
+    border: 1px solid #fff;
+    font: inherit;
+    padding: 6px 8px;
+}
+
+#search-input:focus {
+    outline: 1px solid #fff;
+    outline-offset: 1px;
+}
+
+#search-results {
+    list-style: none;
+    padding: 0;
+    margin-top: 8px;
+    max-height: 40vh;
+    overflow: auto;
+    text-align: left;
+}
+
+#search-results li {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 4px 8px;
+    cursor: pointer;
+}
+
+#search-results li.selected {
+    background: #fff;
+    color: #000;
+}
+
+.search-tag {
+    opacity: 0.6;
+}

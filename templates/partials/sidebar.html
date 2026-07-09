@@ -1,4 +1,7 @@
-<ul class="tree">
+{# id + optional oob: rename handlers return this partial to refresh the
+   tree in place — as the swap target itself (campaign rename) or as an
+   out-of-band extra alongside the map detail (map rename). #}
+<ul class="tree" id="sidebar-tree" {% if oob %}hx-swap-oob="true"{% endif %}>
     <li>
         <details open>
             <summary>campaigns</summary>
@@ -17,6 +20,14 @@
                             {% else %}
                             <li class="empty">(no maps yet)</li>
                             {% endfor %}
+                            <li>
+                                <a href="#" class="del-link"
+                                   hx-get="/campaign/{{ c.id }}/rename"
+                                   hx-target="closest li"
+                                   hx-swap="innerHTML">
+                                    &#9998; rename campaign
+                                </a>
+                            </li>
                             <li>
                                 <a href="#" class="del-link"
                                    hx-delete="/campaign/{{ c.id }}"

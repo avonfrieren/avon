@@ -1,4 +1,11 @@
-<h2>{{ map.name }}</h2>
+<h2>
+    <input class="map-name" name="name" value="{{ map.name }}"
+           size="{{ map.name | length + 1 }}"
+           hx-post="/map/{{ map.id }}/rename"
+           hx-trigger="change"
+           hx-target="#content"
+           hx-swap="innerHTML">
+</h2>
 <a href="#" class="del-link"
    hx-delete="/map/{{ map.id }}"
    hx-confirm="Delete map '{{ map.name }}' with all its rooms, challenges and values?">
