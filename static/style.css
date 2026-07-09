@@ -100,7 +100,7 @@ ul {
     background: #000;
     border-left: 1px solid #fff;
     padding: 4px 8px;
-    text-align: left;
+    text-align: center;
     font-weight: normal;
     z-index: 1;
 }
@@ -162,7 +162,7 @@ ul {
     font: inherit;
     width: 8ch;
     padding: 4px 8px;
-    text-align: left;
+    text-align: center;
 }
 
 .challenges input.room-name:focus {
@@ -185,15 +185,45 @@ ul {
     outline-offset: 1px;
 }
 
-/* Column-delete crosses: barely-there until hovered. */
-.challenges th .del-x {
+/* Delete crosses take no layout space: absolutely positioned in the top
+   right corner of their header/title and invisible until it is hovered.
+   (thead th is sticky and .map-head relative, so both anchor the
+   absolute positioning.) */
+.del-x {
+    position: absolute;
+    top: 0;
+    right: 1px;
     text-decoration: none;
-    opacity: 0.35;
-    margin-left: 6px;
+    font-size: 0.85em;
+    line-height: 1;
+    opacity: 0;
 }
 
-.challenges th .del-x:hover {
+.challenges th:hover .del-x,
+.map-head:hover .del-x,
+.del-x:focus {
     opacity: 1;
+}
+
+/* The map title anchors its own delete cross, floated off to the right
+   so the title stays visually centered. */
+.map-head {
+    position: relative;
+    display: inline-block;
+}
+
+.map-head .del-x {
+    top: 50%;
+    right: -1.2em;
+    transform: translateY(-50%);
+    font-size: 0.6em;
+}
+
+/* A time that isn't a whole number of game frames (17 ms) — almost
+   certainly a typo. Saved anyway, but flagged until it's fixed. */
+.challenges input.off-frame {
+    outline: 1px dashed #fff;
+    outline-offset: -2px;
 }
 
 /* Destructive links (delete map/campaign): dimmed, plain. */
