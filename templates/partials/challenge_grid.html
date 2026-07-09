@@ -44,8 +44,9 @@
                        hx-target="#challenge-grid"
                        hx-swap="outerHTML">
                 {% else %}
-                <input class="cell" name="value"
+                <input class="cell{% if cell.off_frame %} off-frame{% endif %}" name="value"
                        value="{% if cell.value %}{{ cell.value }}{% endif %}"
+                       {% if cell.off_frame %}title="not a multiple of 0.017 (one game frame)"{% endif %}
                        hx-post="/cell/{{ row.room_id }}/{{ cell.challenge_id }}"
                        hx-trigger="change"
                        hx-target="#challenge-grid"

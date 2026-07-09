@@ -1,16 +1,17 @@
-<h2>
+{# The delete cross is absolutely positioned: it takes no space next to
+   the title and only shows while hovering it. #}
+<h2 class="map-head">
     <input class="map-name" name="name" value="{{ map.name }}"
            size="{{ map.name | length + 1 }}"
            hx-post="/map/{{ map.id }}/rename"
            hx-trigger="change"
            hx-target="#content"
            hx-swap="innerHTML">
+    <a href="#" class="del-x"
+       title="delete map"
+       hx-delete="/map/{{ map.id }}"
+       hx-confirm="Delete map '{{ map.name }}' with all its rooms, challenges and values?">&times;</a>
 </h2>
-<a href="#" class="del-link"
-   hx-delete="/map/{{ map.id }}"
-   hx-confirm="Delete map '{{ map.name }}' with all its rooms, challenges and values?">
-    &times; delete map
-</a>
 
 <div class="grid-wrap">
     {% include "partials/challenge_grid.html" %}

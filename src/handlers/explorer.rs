@@ -78,6 +78,12 @@ pub struct GridChallenge {
     pub kind: String,
 }
 
+/// Celeste advances its timer by exactly 17 ms per frame, so every
+/// legitimate in-game time is a multiple of this. A stored time that
+/// isn't one is almost certainly a typo — flagged in the UI, not
+/// rejected, so it can be saved now and fixed later.
+const FRAME_MS: i64 = 17;
+
 /// One cell of a room's row, value already formatted — Tera has no
 /// business knowing about milliseconds. None = empty cell. `kind` is
 /// copied from the column so the template can pick the right widget.
@@ -86,6 +92,8 @@ pub struct GridCell {
     pub challenge_id: i32,
     pub kind: String,
     pub value: Option<String>,
+    /// Time cells only: the stored value isn't a whole number of frames.
+    pub off_frame: bool,
 }
 
 /// One row of the grid: a room and its cell for every challenge column.
@@ -187,12 +195,15 @@ async fn insert_grid_context(state: &AppState, map_id: i32, ctx: &mut tera::Cont
             room_name: room_name.clone(),
             cells: challenges
                 .iter()
-                .map(|(challenge_id, _, kind)| GridCell {
-                    challenge_id: *challenge_id,
-                    kind: kind.clone(),
-                    value: by_cell
-                        .get(&(*room_id, *challenge_id))
-                        .map(|&v| format_value(kind, v)),
+                .map(|(challenge_id, _, kind)| {
+                    let raw = by_cell.get(&(*room_id, *challenge_id)).copied();
+                    GridCell {
+                        challenge_id: *challenge_id,
+                        kind: kind.clone(),
+                        value: raw.map(|v| format_value(kind, v)),
+                        off_frame: kind == "time"
+                            && raw.is_some_and(|v| v % FRAME_MS != 0),
+                    }
                 })
                 .collect(),
         })
