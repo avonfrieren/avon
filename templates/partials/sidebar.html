@@ -17,6 +17,13 @@
                             {% else %}
                             <li class="empty">(no maps yet)</li>
                             {% endfor %}
+                            <li>
+                                <a href="#" class="del-link"
+                                   hx-delete="/campaign/{{ c.id }}"
+                                   hx-confirm="Delete campaign '{{ c.name }}'? Its maps become standalone.">
+                                    &times; delete campaign
+                                </a>
+                            </li>
                         </ul>
                     </details>
                 </li>

@@ -290,10 +290,7 @@ async fn list_images() -> Vec<String> {
 
 /// GET /map/:id — content pane for a single map, whether it's standalone
 /// or belongs to a campaign.
-pub async fn map_detail(
-    State(state): State<Arc<AppState>>,
-    Path(id): Path<i32>,
-) -> Html<String> {
+pub async fn map_detail(State(state): State<Arc<AppState>>, Path(id): Path<i32>) -> Html<String> {
     let query = format!("SELECT {MAP_COLUMNS} FROM maps WHERE id = $1");
     let map: MapRow = sqlx::query_as(&query)
         .bind(id)
@@ -403,10 +400,186 @@ pub async fn update_cell(
     Html(rendered)
 }
 
+#[derive(serde::Deserialize)]
+pub struct RoomRenameForm {
+    pub name: String,
+}
+
+/// POST /room/:id — rename a room from its grid header cell, then
+/// re-render the grid. A blanked-out name is ignored: the old one comes
+/// back with the swap.
+pub async fn rename_room(
+    State(state): State<Arc<AppState>>,
+    Path(room_id): Path<i32>,
+    axum::Form(form): axum::Form<RoomRenameForm>,
+) -> Html<String> {
+    let (map_id,): (i32,) = sqlx::query_as("SELECT map_id FROM rooms WHERE id = $1")
+        .bind(room_id)
+        .fetch_one(&state.db)
+        .await
+        .unwrap();
+
+    let name = form.name.trim();
+    if !name.is_empty() {
+        sqlx::query("UPDATE rooms SET name = $1 WHERE id = $2")
+            .bind(name)
+            .bind(room_id)
+            .execute(&state.db)
+            .await
+            .ok();
+    }
+
+    let mut ctx = tera::Context::new();
+    insert_grid_context(&state, map_id, &mut ctx).await;
+    Html(
+        state
+            .tera
+            .render("partials/challenge_grid.html", &ctx)
+            .unwrap(),
+    )
+}
+
+#[derive(serde::Deserialize)]
+pub struct ChallengeAddForm {
+    pub name: String,
+    pub kind: String,
+}
+
+/// POST /map/:id/challenges — append a challenge column to an existing
+/// map's grid (at the end of the axis), then re-render the grid.
+pub async fn add_challenge(
+    State(state): State<Arc<AppState>>,
+    Path(map_id): Path<i32>,
+    axum::Form(form): axum::Form<ChallengeAddForm>,
+) -> Html<String> {
+    let name = form.name.trim();
+    let kind = match form.kind.as_str() {
+        "time" | "bool" => form.kind.as_str(),
+        _ => "int",
+    };
+    if !name.is_empty() {
+        sqlx::query(
+            "INSERT INTO challenges (map_id, name, position, kind)
+             VALUES ($1, $2,
+                     (SELECT COALESCE(MAX(position), 0) + 1 FROM challenges WHERE map_id = $1),
+                     $3)",
+        )
+        .bind(map_id)
+        .bind(name)
+        .bind(kind)
+        .execute(&state.db)
+        .await
+        .ok();
+    }
+
+    let mut ctx = tera::Context::new();
+    insert_grid_context(&state, map_id, &mut ctx).await;
+    Html(
+        state
+            .tera
+            .render("partials/challenge_grid.html", &ctx)
+            .unwrap(),
+    )
+}
+
+#[derive(serde::Deserialize)]
+pub struct ChallengeRenameForm {
+    pub name: String,
+}
+
+/// POST /challenge/:id — rename a challenge from its column header, then
+/// re-render the grid. Same contract as room renaming: a blanked-out name
+/// is ignored and the old one comes back with the swap.
+pub async fn rename_challenge(
+    State(state): State<Arc<AppState>>,
+    Path(challenge_id): Path<i32>,
+    axum::Form(form): axum::Form<ChallengeRenameForm>,
+) -> Html<String> {
+    let (map_id,): (i32,) = sqlx::query_as("SELECT map_id FROM challenges WHERE id = $1")
+        .bind(challenge_id)
+        .fetch_one(&state.db)
+        .await
+        .unwrap();
+
+    let name = form.name.trim();
+    if !name.is_empty() {
+        sqlx::query("UPDATE challenges SET name = $1 WHERE id = $2")
+            .bind(name)
+            .bind(challenge_id)
+            .execute(&state.db)
+            .await
+            .ok();
+    }
+
+    let mut ctx = tera::Context::new();
+    insert_grid_context(&state, map_id, &mut ctx).await;
+    Html(
+        state
+            .tera
+            .render("partials/challenge_grid.html", &ctx)
+            .unwrap(),
+    )
+}
+
+/// DELETE /challenge/:id — drop a challenge column; its cell values go
+/// with it (FK cascade). Re-renders the grid.
+pub async fn delete_challenge(
+    State(state): State<Arc<AppState>>,
+    Path(challenge_id): Path<i32>,
+) -> Html<String> {
+    let (map_id,): (i32,) = sqlx::query_as("SELECT map_id FROM challenges WHERE id = $1")
+        .bind(challenge_id)
+        .fetch_one(&state.db)
+        .await
+        .unwrap();
+
+    sqlx::query("DELETE FROM challenges WHERE id = $1")
+        .bind(challenge_id)
+        .execute(&state.db)
+        .await
+        .ok();
+
+    let mut ctx = tera::Context::new();
+    insert_grid_context(&state, map_id, &mut ctx).await;
+    Html(
+        state
+            .tera
+            .render("partials/challenge_grid.html", &ctx)
+            .unwrap(),
+    )
+}
+
+/// DELETE /map/:id — delete a map and, via FK cascades, its rooms,
+/// challenges and cell values. HX-Redirect rebuilds the sidebar.
+pub async fn delete_map(State(state): State<Arc<AppState>>, Path(id): Path<i32>) -> Response {
+    sqlx::query("DELETE FROM maps WHERE id = $1")
+        .bind(id)
+        .execute(&state.db)
+        .await
+        .ok();
+    ([("HX-Redirect", "/")], "").into_response()
+}
+
+/// DELETE /campaign/:id — delete a campaign. Its maps are NOT deleted:
+/// their campaign_id is SET NULL by the FK, so they become standalone.
+pub async fn delete_campaign(State(state): State<Arc<AppState>>, Path(id): Path<i32>) -> Response {
+    sqlx::query("DELETE FROM campaigns WHERE id = $1")
+        .bind(id)
+        .execute(&state.db)
+        .await
+        .ok();
+    ([("HX-Redirect", "/")], "").into_response()
+}
+
 /// GET /campaigns/new — the campaign creation form, loaded into #content.
 pub async fn campaign_form(State(state): State<Arc<AppState>>) -> Html<String> {
     let ctx = tera::Context::new();
-    Html(state.tera.render("partials/campaign_form.html", &ctx).unwrap())
+    Html(
+        state
+            .tera
+            .render("partials/campaign_form.html", &ctx)
+            .unwrap(),
+    )
 }
 
 #[derive(serde::Deserialize)]
@@ -427,11 +600,20 @@ pub async fn create_campaign(
     if name.is_empty() {
         let mut ctx = tera::Context::new();
         ctx.insert("error", "name is required");
-        return Html(state.tera.render("partials/campaign_form.html", &ctx).unwrap())
-            .into_response();
+        return Html(
+            state
+                .tera
+                .render("partials/campaign_form.html", &ctx)
+                .unwrap(),
+        )
+        .into_response();
     }
 
-    let link = form.link.as_deref().map(str::trim).filter(|s| !s.is_empty());
+    let link = form
+        .link
+        .as_deref()
+        .map(str::trim)
+        .filter(|s| !s.is_empty());
     sqlx::query("INSERT INTO campaigns (name, link, is_collab) VALUES ($1, $2, $3)")
         .bind(name)
         .bind(link)
@@ -476,7 +658,12 @@ pub async fn create_map(
     axum::Form(form): axum::Form<MapForm>,
 ) -> Response {
     let name = form.name.trim();
-    let nb_rooms: Option<i32> = form.nb_rooms.trim().parse().ok().filter(|n| (1..=999).contains(n));
+    let nb_rooms: Option<i32> = form
+        .nb_rooms
+        .trim()
+        .parse()
+        .ok()
+        .filter(|n| (1..=999).contains(n));
 
     let error = if name.is_empty() {
         Some("name is required")
@@ -545,14 +732,16 @@ pub async fn create_map(
     .unwrap();
 
     for (position, (name, kind)) in DEFAULT_CHALLENGES.iter().enumerate() {
-        sqlx::query("INSERT INTO challenges (map_id, name, position, kind) VALUES ($1, $2, $3, $4)")
-            .bind(map_id)
-            .bind(name)
-            .bind(position as i32 + 1)
-            .bind(kind)
-            .execute(&state.db)
-            .await
-            .unwrap();
+        sqlx::query(
+            "INSERT INTO challenges (map_id, name, position, kind) VALUES ($1, $2, $3, $4)",
+        )
+        .bind(map_id)
+        .bind(name)
+        .bind(position as i32 + 1)
+        .bind(kind)
+        .execute(&state.db)
+        .await
+        .unwrap();
     }
 
     ([("HX-Redirect", "/")], "").into_response()

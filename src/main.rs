@@ -28,10 +28,30 @@ async fn main() {
 
     let app = Router::new()
         .route("/", get(handlers::explorer::index))
-        .route("/map/:id", get(handlers::explorer::map_detail))
+        .route(
+            "/map/:id",
+            get(handlers::explorer::map_detail).delete(handlers::explorer::delete_map),
+        )
         .route(
             "/cell/:room_id/:challenge_id",
             axum::routing::post(handlers::explorer::update_cell),
+        )
+        .route(
+            "/room/:id",
+            axum::routing::post(handlers::explorer::rename_room),
+        )
+        .route(
+            "/map/:id/challenges",
+            axum::routing::post(handlers::explorer::add_challenge),
+        )
+        .route(
+            "/challenge/:id",
+            axum::routing::post(handlers::explorer::rename_challenge)
+                .delete(handlers::explorer::delete_challenge),
+        )
+        .route(
+            "/campaign/:id",
+            axum::routing::delete(handlers::explorer::delete_campaign),
         )
         .route("/campaigns/new", get(handlers::explorer::campaign_form))
         .route(

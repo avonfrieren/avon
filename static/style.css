@@ -81,13 +81,15 @@ ul {
     padding: 0;
 }
 
-/* Challenge codes stay visible while scrolling down. */
+/* Challenge codes stay visible while scrolling down. Nowrap keeps each
+   header's name input and delete cross on one line. */
 .challenges thead th {
     position: sticky;
     top: 0;
     background: #000;
     border-top: 1px solid #fff;
     padding: 4px 8px;
+    white-space: nowrap;
     z-index: 2;
 }
 
@@ -146,6 +148,95 @@ ul {
     display: block;
     margin: 7px auto;
     accent-color: #fff;
+}
+
+/* Room names are edited in place; the input replaces the cell padding. */
+.challenges tbody th.room {
+    padding: 0;
+}
+
+.challenges input.room-name {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font: inherit;
+    width: 8ch;
+    padding: 4px 8px;
+    text-align: left;
+}
+
+.challenges input.room-name:focus {
+    outline: 1px solid #fff;
+    outline-offset: -1px;
+}
+
+/* Challenge names are edited in place too, from the column header. */
+.challenges input.col-name {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font: inherit;
+    padding: 0;
+    text-align: center;
+}
+
+.challenges input.col-name:focus {
+    outline: 1px solid #fff;
+    outline-offset: 1px;
+}
+
+/* Column-delete crosses: barely-there until hovered. */
+.challenges th .del-x {
+    text-decoration: none;
+    opacity: 0.35;
+    margin-left: 6px;
+}
+
+.challenges th .del-x:hover {
+    opacity: 1;
+}
+
+/* Destructive links (delete map/campaign): dimmed, plain. */
+.del-link {
+    text-decoration: none;
+    opacity: 0.6;
+}
+
+.del-link:hover {
+    opacity: 1;
+}
+
+/* Adding a challenge column to an existing map — sits under the grid. */
+.add-challenge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.add-challenge input,
+.add-challenge select,
+.add-challenge button {
+    background: #000;
+    color: #fff;
+    border: 1px solid #fff;
+    font: inherit;
+    padding: 4px 8px;
+}
+
+.add-challenge input {
+    width: 12ch;
+}
+
+.add-challenge button {
+    cursor: pointer;
+}
+
+.add-challenge input:focus,
+.add-challenge select:focus,
+.add-challenge button:focus {
+    outline: 1px solid #fff;
+    outline-offset: 2px;
 }
 
 /* Campaign / map creation forms, loaded into #content. */
