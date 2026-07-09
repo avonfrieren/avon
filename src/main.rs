@@ -53,6 +53,15 @@ async fn main() {
             "/campaign/:id",
             axum::routing::delete(handlers::explorer::delete_campaign),
         )
+        .route(
+            "/map/:id/rename",
+            axum::routing::post(handlers::explorer::rename_map),
+        )
+        .route(
+            "/campaign/:id/rename",
+            get(handlers::explorer::campaign_rename_form)
+                .post(handlers::explorer::rename_campaign),
+        )
         .route("/campaigns/new", get(handlers::explorer::campaign_form))
         .route(
             "/campaigns",

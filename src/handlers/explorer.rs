@@ -227,10 +227,9 @@ async fn insert_grid_context(state: &AppState, map_id: i32, ctx: &mut tera::Cont
 
 const MAP_COLUMNS: &str = "id, name, campaign_id, nb_rooms, cleared, clearing_date";
 
-/// GET / — explorer shell. Builds the sidebar tree from the DB:
-/// each campaign becomes a folder containing its maps, plus a flat
-/// "maps" folder for standalone ones.
-pub async fn index(State(state): State<Arc<AppState>>) -> Html<String> {
+/// Everything the sidebar tree needs, as a Tera context. Shared by the
+/// full-page index and the rename handlers that re-render just the tree.
+async fn sidebar_context(state: &AppState) -> tera::Context {
     let campaigns: Vec<Campaign> =
         sqlx::query_as("SELECT id, name, link, is_collab FROM campaigns ORDER BY name")
             .fetch_all(&state.db)
@@ -268,6 +267,14 @@ pub async fn index(State(state): State<Arc<AppState>>) -> Html<String> {
     ctx.insert("campaigns", &campaigns_with_maps);
     ctx.insert("standalone_maps", &standalone_maps);
     ctx.insert("images", &images);
+    ctx
+}
+
+/// GET / — explorer shell. Builds the sidebar tree from the DB:
+/// each campaign becomes a folder containing its maps, plus a flat
+/// "maps" folder for standalone ones.
+pub async fn index(State(state): State<Arc<AppState>>) -> Html<String> {
+    let ctx = sidebar_context(&state).await;
     let rendered = state.tera.render("explorer.html", &ctx).unwrap();
     Html(rendered)
 }
@@ -547,6 +554,97 @@ pub async fn delete_challenge(
             .render("partials/challenge_grid.html", &ctx)
             .unwrap(),
     )
+}
+
+#[derive(serde::Deserialize)]
+pub struct MapRenameForm {
+    pub name: String,
+}
+
+/// POST /map/:id/rename — rename a map from its detail-pane title, then
+/// return the refreshed detail pane plus an out-of-band sidebar swap so
+/// the tree shows the new name without a reload. Blank names are ignored.
+pub async fn rename_map(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<i32>,
+    axum::Form(form): axum::Form<MapRenameForm>,
+) -> Html<String> {
+    let name = form.name.trim();
+    if !name.is_empty() {
+        sqlx::query("UPDATE maps SET name = $1 WHERE id = $2")
+            .bind(name)
+            .bind(id)
+            .execute(&state.db)
+            .await
+            .ok();
+    }
+
+    let query = format!("SELECT {MAP_COLUMNS} FROM maps WHERE id = $1");
+    let map: MapRow = sqlx::query_as(&query)
+        .bind(id)
+        .fetch_one(&state.db)
+        .await
+        .unwrap();
+    let mut ctx = tera::Context::new();
+    ctx.insert("map", &map);
+    insert_grid_context(&state, id, &mut ctx).await;
+    let detail = state.tera.render("partials/map_detail.html", &ctx).unwrap();
+
+    let mut side_ctx = sidebar_context(&state).await;
+    side_ctx.insert("oob", &true);
+    let sidebar = state.tera.render("partials/sidebar.html", &side_ctx).unwrap();
+
+    Html(format!("{detail}\n{sidebar}"))
+}
+
+/// GET /campaign/:id/rename — swaps the sidebar's "rename campaign" link
+/// for an inline input pre-filled with the current name.
+pub async fn campaign_rename_form(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<i32>,
+) -> Html<String> {
+    let (name,): (String,) = sqlx::query_as("SELECT name FROM campaigns WHERE id = $1")
+        .bind(id)
+        .fetch_one(&state.db)
+        .await
+        .unwrap();
+
+    let mut ctx = tera::Context::new();
+    ctx.insert("id", &id);
+    ctx.insert("name", &name);
+    Html(
+        state
+            .tera
+            .render("partials/campaign_rename.html", &ctx)
+            .unwrap(),
+    )
+}
+
+#[derive(serde::Deserialize)]
+pub struct CampaignRenameForm {
+    pub name: String,
+}
+
+/// POST /campaign/:id/rename — save the new name and re-render the whole
+/// sidebar tree (the content pane is left untouched). Blank names are
+/// ignored, which also serves as the "cancel" path.
+pub async fn rename_campaign(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<i32>,
+    axum::Form(form): axum::Form<CampaignRenameForm>,
+) -> Html<String> {
+    let name = form.name.trim();
+    if !name.is_empty() {
+        sqlx::query("UPDATE campaigns SET name = $1 WHERE id = $2")
+            .bind(name)
+            .bind(id)
+            .execute(&state.db)
+            .await
+            .ok();
+    }
+
+    let ctx = sidebar_context(&state).await;
+    Html(state.tera.render("partials/sidebar.html", &ctx).unwrap())
 }
 
 /// DELETE /map/:id — delete a map and, via FK cascades, its rooms,
