@@ -1,0 +1,29 @@
+<div id="celestedle">
+    <h2>celestedle</h2>
+    <p class="cd-hint">one Celeste entity per day — press ctrl+k or click below, guess, read the colors, repeat</p>
+    <button id="celestedle-open" type="button">guess an entity...</button>
+    <p id="celestedle-status"></p>
+    <div class="cd-wrap">
+        <table class="cd-table">
+            <thead>
+                <tr>
+                    <th>entity</th>
+                    <th>category</th>
+                    <th>chapter</th>
+                    <th>harmful</th>
+                    <th>solid</th>
+                    <th>colors</th>
+                </tr>
+            </thead>
+            <tbody id="celestedle-rows"></tbody>
+        </table>
+    </div>
+    <p class="cd-legend">
+        <span class="cd-ok">exact</span>
+        <span class="cd-partial">partial</span>
+        <span class="cd-no">wrong</span>
+        &#8593; the answer is later, &#8595; earlier
+    </p>
+    {# Names only — the day's answer never leaves the server. #}
+    <script type="application/json" id="celestedle-entities">{{ entities | json_encode() | safe }}</script>
+</div>

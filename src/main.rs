@@ -69,6 +69,11 @@ async fn main() {
         )
         .route("/maps/new", get(handlers::explorer::map_form))
         .route("/maps", axum::routing::post(handlers::explorer::create_map))
+        .route("/celestedle", get(handlers::celestedle::page))
+        .route(
+            "/celestedle/guess",
+            axum::routing::post(handlers::celestedle::guess),
+        )
         .route("/imgs/:filename", get(handlers::explorer::image_view))
         .nest_service("/static", ServeDir::new("static"))
         .with_state(state);

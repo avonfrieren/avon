@@ -338,8 +338,10 @@ input.map-name:focus {
     padding: 2px 4px;
 }
 
-/* Ctrl+K search palette. */
-#search-overlay {
+/* Ctrl+K palettes — the site search and the celestedle guess picker
+   share the same skin via the .palette-* classes. */
+#search-overlay,
+.palette-overlay {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.75);
@@ -347,11 +349,13 @@ input.map-name:focus {
     z-index: 10;
 }
 
-#search-overlay.open {
+#search-overlay.open,
+.palette-overlay.open {
     display: block;
 }
 
-#search-box {
+#search-box,
+.palette-box {
     width: min(480px, 90vw);
     margin: 20vh auto 0;
     background: #000;
@@ -359,7 +363,8 @@ input.map-name:focus {
     padding: 8px;
 }
 
-#search-input {
+#search-input,
+.palette-input {
     width: 100%;
     background: #000;
     color: #fff;
@@ -368,12 +373,14 @@ input.map-name:focus {
     padding: 6px 8px;
 }
 
-#search-input:focus {
+#search-input:focus,
+.palette-input:focus {
     outline: 1px solid #fff;
     outline-offset: 1px;
 }
 
-#search-results {
+#search-results,
+.palette-results {
     list-style: none;
     padding: 0;
     margin-top: 8px;
@@ -382,7 +389,8 @@ input.map-name:focus {
     text-align: left;
 }
 
-#search-results li {
+#search-results li,
+.palette-results li {
     display: flex;
     justify-content: space-between;
     gap: 16px;
@@ -390,11 +398,84 @@ input.map-name:focus {
     cursor: pointer;
 }
 
-#search-results li.selected {
+#search-results li.selected,
+.palette-results li.selected {
     background: #fff;
     color: #000;
 }
 
 .search-tag {
     opacity: 0.6;
+}
+
+/* Celestedle. Same skeleton as the challenge grid; the guess feedback is
+   the one place the site uses color, as the game needs it. */
+#celestedle .cd-hint {
+    margin: 8px 0 16px;
+    opacity: 0.7;
+}
+
+#celestedle-open {
+    background: #000;
+    color: #fff;
+    border: 1px solid #fff;
+    font: inherit;
+    padding: 6px 16px;
+    cursor: pointer;
+}
+
+#celestedle-open:focus {
+    outline: 1px solid #fff;
+    outline-offset: 2px;
+}
+
+#celestedle-status {
+    margin: 12px 0;
+    min-height: 1.2em;
+    font-weight: bold;
+}
+
+.cd-wrap {
+    max-width: 90vw;
+    max-height: 55vh;
+    overflow: auto;
+    margin: 8px auto 0;
+}
+
+.cd-table {
+    border-collapse: collapse;
+    margin: 0 auto;
+}
+
+.cd-table th,
+.cd-table td {
+    border: 1px solid #fff;
+    padding: 4px 12px;
+    text-align: center;
+}
+
+.cd-ok {
+    background: #1c5e20;
+}
+
+.cd-partial {
+    background: #8a5a00;
+}
+
+.cd-no {
+    background: #6e1414;
+}
+
+.cd-neutral {
+    background: #000;
+}
+
+.cd-legend {
+    margin-top: 12px;
+    opacity: 0.8;
+}
+
+.cd-legend span {
+    padding: 2px 8px;
+    margin-right: 6px;
 }

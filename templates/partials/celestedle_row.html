@@ -1,0 +1,5 @@
+<tr{% if win %} class="win"{% endif %}>
+    {% for c in cells %}
+    <td class="cd-{{ c.class }}">{{ c.text }}</td>
+    {% endfor %}
+</tr>
