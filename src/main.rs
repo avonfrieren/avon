@@ -1,7 +1,10 @@
 mod db;
 mod handlers;
 
-use axum::{routing::get, Router};
+use axum::{
+    routing::{get, post},
+    Router,
+};
 use std::sync::Arc;
 use tera::Tera;
 use tower_http::services::ServeDir;
@@ -26,50 +29,31 @@ async fn main() {
 
     let state = Arc::new(AppState { db: pool, tera });
 
+    use handlers::{campaigns, grid, maps, sidebar};
     let app = Router::new()
-        .route("/", get(handlers::explorer::index))
-        .route(
-            "/map/:id",
-            get(handlers::explorer::map_detail).delete(handlers::explorer::delete_map),
-        )
-        .route(
-            "/cell/:room_id/:challenge_id",
-            axum::routing::post(handlers::explorer::update_cell),
-        )
-        .route(
-            "/room/:id",
-            axum::routing::post(handlers::explorer::rename_room),
-        )
-        .route(
-            "/map/:id/challenges",
-            axum::routing::post(handlers::explorer::add_challenge),
-        )
-        .route(
-            "/challenge/:id",
-            axum::routing::post(handlers::explorer::rename_challenge)
-                .delete(handlers::explorer::delete_challenge),
-        )
+        .route("/", get(sidebar::index))
+        .route("/imgs/:filename", get(sidebar::image_view))
+        .route("/map/:id", get(maps::map_detail).delete(maps::delete_map))
+        .route("/map/:id/rename", post(maps::rename_map))
+        .route("/maps/new", get(maps::map_form))
+        .route("/maps", post(maps::create_map))
         .route(
             "/campaign/:id",
-            axum::routing::delete(handlers::explorer::delete_campaign),
-        )
-        .route(
-            "/map/:id/rename",
-            axum::routing::post(handlers::explorer::rename_map),
+            axum::routing::delete(campaigns::delete_campaign),
         )
         .route(
             "/campaign/:id/rename",
-            get(handlers::explorer::campaign_rename_form)
-                .post(handlers::explorer::rename_campaign),
+            get(campaigns::campaign_rename_form).post(campaigns::rename_campaign),
         )
-        .route("/campaigns/new", get(handlers::explorer::campaign_form))
+        .route("/campaigns/new", get(campaigns::campaign_form))
+        .route("/campaigns", post(campaigns::create_campaign))
+        .route("/cell/:room_id/:challenge_id", post(grid::update_cell))
+        .route("/room/:id", post(grid::rename_room))
+        .route("/map/:id/challenges", post(grid::add_challenge))
         .route(
-            "/campaigns",
-            axum::routing::post(handlers::explorer::create_campaign),
+            "/challenge/:id",
+            post(grid::rename_challenge).delete(grid::delete_challenge),
         )
-        .route("/maps/new", get(handlers::explorer::map_form))
-        .route("/maps", axum::routing::post(handlers::explorer::create_map))
-        .route("/imgs/:filename", get(handlers::explorer::image_view))
         .nest_service("/static", ServeDir::new("static"))
         .with_state(state);
 
