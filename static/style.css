@@ -338,6 +338,22 @@ input.map-name:focus {
     padding: 2px 4px;
 }
 
+/* Read-only grid (logged-out visitors): plain text keeps the padding
+   the inputs would have provided. */
+.challenges td.ro,
+.challenges tbody th.room.ro {
+    padding: 4px 8px;
+}
+
+/* The /login page: one centered form, same skin as the other forms. */
+.login-page {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
 /* Ctrl+K search palette. */
 #search-overlay {
     position: fixed;

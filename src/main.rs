@@ -29,9 +29,11 @@ async fn main() {
 
     let state = Arc::new(AppState { db: pool, tera });
 
-    use handlers::{campaigns, grid, maps, sidebar};
+    use handlers::{auth, campaigns, grid, maps, sidebar};
     let app = Router::new()
         .route("/", get(sidebar::index))
+        .route("/login", get(auth::login))
+        .route("/logout", post(auth::logout))
         .route("/imgs/:filename", get(sidebar::image_view))
         .route("/map/:id", get(maps::map_detail).delete(maps::delete_map))
         .route("/map/:id/rename", post(maps::rename_map))
@@ -55,6 +57,12 @@ async fn main() {
             post(grid::rename_challenge).delete(grid::delete_challenge),
         )
         .nest_service("/static", ServeDir::new("static"))
+        // The write guard: GETs stay public, everything else needs a
+        // session. Sits outside the routes so no handler can forget it.
+        .layer(axum::middleware::from_fn_with_state(
+            state.clone(),
+            auth::require_admin_for_writes,
+        ))
         .with_state(state);
 
     // Alwaysdata injects PORT (and IP) into the environment for custom sites.

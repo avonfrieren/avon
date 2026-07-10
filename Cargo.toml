@@ -12,6 +12,9 @@ serde = { version = "1", features = ["derive"] }
 dotenvy = "0.15"
 tower-http = { version = "0.5", features = ["fs"] }
 chrono = { version = "0.4", features = ["serde"] }
+axum-extra = { version = "0.9", features = ["cookie"] }
+rand = "0.8"
+sha2 = "0.10"
 
 [profile.dev]
 debug = 0

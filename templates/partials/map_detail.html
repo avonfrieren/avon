@@ -1,3 +1,4 @@
+{% if is_admin %}
 {# The delete cross is absolutely positioned: it takes no space next to
    the title and only shows while hovering it. #}
 <h2 class="map-head">
@@ -12,11 +13,15 @@
        hx-delete="/map/{{ map.id }}"
        hx-confirm="Delete map '{{ map.name }}' with all its rooms, challenges and values?">&times;</a>
 </h2>
+{% else %}
+<h2>{{ map.name }}</h2>
+{% endif %}
 
 <div class="grid-wrap">
     {% include "partials/challenge_grid.html" %}
 </div>
 
+{% if is_admin %}
 {# Lives outside the grid partial so it neither scrolls with the table nor
    gets swapped on grid updates — it just re-renders the grid on submit. #}
 <form class="add-challenge"
@@ -32,3 +37,4 @@
     </select>
     <button type="submit">+ add challenge</button>
 </form>
+{% endif %}

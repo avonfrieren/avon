@@ -6,6 +6,7 @@ use axum::{
     extract::{Path, State},
     response::Html,
 };
+use axum_extra::extract::cookie::CookieJar;
 use serde::Serialize;
 use std::sync::Arc;
 
@@ -54,7 +55,8 @@ pub(crate) async fn all_campaigns(state: &AppState) -> Vec<Campaign> {
 
 /// Everything the sidebar tree needs, as a Tera context. Shared by the
 /// full-page index and the handlers that re-render just the tree.
-pub(crate) async fn sidebar_context(state: &AppState) -> tera::Context {
+/// `is_admin` decides whether the tree renders its edit controls.
+pub(crate) async fn sidebar_context(state: &AppState, is_admin: bool) -> tera::Context {
     let campaigns = all_campaigns(state).await;
 
     // One query per campaign to fetch its maps. Fine at hobby-project scale
@@ -88,14 +90,16 @@ pub(crate) async fn sidebar_context(state: &AppState) -> tera::Context {
     ctx.insert("campaigns", &campaigns_with_maps);
     ctx.insert("standalone_maps", &standalone_maps);
     ctx.insert("images", &images);
+    ctx.insert("is_admin", &is_admin);
     ctx
 }
 
 /// GET / — explorer shell. Builds the sidebar tree from the DB:
 /// each campaign becomes a folder containing its maps, plus a flat
 /// "maps" folder for standalone ones.
-pub async fn index(State(state): State<Arc<AppState>>) -> Html<String> {
-    let ctx = sidebar_context(&state).await;
+pub async fn index(State(state): State<Arc<AppState>>, jar: CookieJar) -> Html<String> {
+    let is_admin = super::auth::is_admin(&state, &jar).await;
+    let ctx = sidebar_context(&state, is_admin).await;
     render(&state, "explorer.html", &ctx)
 }
 

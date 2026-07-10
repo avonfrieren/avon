@@ -3,6 +3,7 @@
 //! - `campaigns` / `maps` — CRUD for the two kinds of tree entries
 //! - `grid` — a map's room × challenge table and its cell values
 
+pub mod auth;
 pub mod campaigns;
 pub mod grid;
 pub mod maps;
