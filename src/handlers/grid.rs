@@ -227,6 +227,9 @@ pub(crate) async fn insert_grid_context(state: &AppState, map_id: i32, ctx: &mut
 /// answers with, so the SoB footer always reflects the change.
 async fn grid_partial(state: &AppState, map_id: i32) -> Html<String> {
     let mut ctx = tera::Context::new();
+    // Only a logged-in session reaches the grid-editing handlers (write
+    // middleware), so the re-rendered grid is always the editable one.
+    ctx.insert("is_admin", &true);
     insert_grid_context(state, map_id, &mut ctx).await;
     render(state, "partials/challenge_grid.html", &ctx)
 }

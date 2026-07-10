@@ -20,6 +20,7 @@
                             {% else %}
                             <li class="empty">(no maps yet)</li>
                             {% endfor %}
+                            {% if is_admin %}
                             <li>
                                 <a href="#" class="del-link"
                                    hx-get="/campaign/{{ c.id }}/rename"
@@ -35,17 +36,20 @@
                                     &times; delete campaign
                                 </a>
                             </li>
+                            {% endif %}
                         </ul>
                     </details>
                 </li>
                 {% else %}
                 <li class="empty">(no campaigns yet)</li>
                 {% endfor %}
+                {% if is_admin %}
                 <li>
                     <a href="#" class="new-link" hx-get="/campaigns/new" hx-target="#content">
                         + new campaign
                     </a>
                 </li>
+                {% endif %}
             </ul>
         </details>
     </li>
@@ -63,11 +67,13 @@
                 {% else %}
                 <li class="empty">(no standalone maps yet)</li>
                 {% endfor %}
+                {% if is_admin %}
                 <li>
                     <a href="#" class="new-link" hx-get="/maps/new" hx-target="#content">
                         + new map
                     </a>
                 </li>
+                {% endif %}
             </ul>
         </details>
     </li>
@@ -76,6 +82,14 @@
         <a href="https://github.com/avonfrieren/celeste" target="_blank" rel="noopener">
             github
         </a>
+    </li>
+
+    <li>
+        {% if is_admin %}
+        <a href="#" class="del-link" hx-post="/logout">logout</a>
+        {% else %}
+        <a href="/login" class="del-link">login</a>
+        {% endif %}
     </li>
 
     <li>

@@ -6,6 +6,7 @@ use axum::{
     extract::{Path, State},
     response::{Html, IntoResponse, Response},
 };
+use axum_extra::extract::cookie::CookieJar;
 use std::sync::Arc;
 
 use super::grid::{insert_grid_context, Kind};
@@ -55,12 +56,17 @@ async fn map_by_id(state: &AppState, id: i32) -> MapRow {
 }
 
 /// GET /map/:id — content pane for a single map, whether it's standalone
-/// or belongs to a campaign.
-pub async fn map_detail(State(state): State<Arc<AppState>>, Path(id): Path<i32>) -> Html<String> {
+/// or belongs to a campaign. Read-only unless the visitor is logged in.
+pub async fn map_detail(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<i32>,
+    jar: CookieJar,
+) -> Html<String> {
     let map = map_by_id(&state, id).await;
 
     let mut ctx = tera::Context::new();
     ctx.insert("map", &map);
+    ctx.insert("is_admin", &super::auth::is_admin(&state, &jar).await);
     insert_grid_context(&state, id, &mut ctx).await;
     render(&state, "partials/map_detail.html", &ctx)
 }
@@ -199,13 +205,15 @@ pub async fn rename_map(
             .ok();
     }
 
+    // Only a logged-in session reaches this handler (write middleware).
     let map = map_by_id(&state, id).await;
     let mut ctx = tera::Context::new();
     ctx.insert("map", &map);
+    ctx.insert("is_admin", &true);
     insert_grid_context(&state, id, &mut ctx).await;
     let detail = render(&state, "partials/map_detail.html", &ctx);
 
-    let mut side_ctx = sidebar_context(&state).await;
+    let mut side_ctx = sidebar_context(&state, true).await;
     side_ctx.insert("oob", &true);
     let sidebar = render(&state, "partials/sidebar.html", &side_ctx);
 

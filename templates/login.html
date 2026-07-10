@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="login-page">
+    <h2>login</h2>
+    <form class="create-form" method="get" action="/login">
+        <label>key <input name="key" type="password" required autofocus></label>
+        {% if error %}<p class="form-error">{{ error }}</p>{% endif %}
+        <button type="submit">enter</button>
+    </form>
+</div>
+{% endblock %}

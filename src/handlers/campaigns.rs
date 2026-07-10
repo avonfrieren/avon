@@ -94,7 +94,8 @@ pub async fn rename_campaign(
             .ok();
     }
 
-    let ctx = sidebar_context(&state).await;
+    // Only a logged-in session reaches this handler (write middleware).
+    let ctx = sidebar_context(&state, true).await;
     render(&state, "partials/sidebar.html", &ctx)
 }
 
