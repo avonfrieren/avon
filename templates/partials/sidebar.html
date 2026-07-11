@@ -53,7 +53,6 @@
             </ul>
         </details>
     </li>
-
     <li>
         <details open>
             <summary>maps</summary>
@@ -77,21 +76,6 @@
             </ul>
         </details>
     </li>
-
-    <li>
-        <a href="https://github.com/avonfrieren/celeste" target="_blank" rel="noopener">
-            github
-        </a>
-    </li>
-
-    <li>
-        {% if is_admin %}
-        <a href="#" class="del-link" hx-post="/logout">logout</a>
-        {% else %}
-        <a href="/login" class="del-link">login</a>
-        {% endif %}
-    </li>
-
     <li>
         <details>
             <summary>docs</summary>
@@ -108,7 +92,6 @@
             </ul>
         </details>
     </li>
-
     <li>
         <details>
             <summary>imgs</summary>
@@ -124,5 +107,12 @@
                 {% endfor %}
             </ul>
         </details>
+    </li>
+    <li>
+        {% if is_admin %}
+        <a href="#" class="del-link" hx-post="/logout">logout</a>
+        {% else %}
+        <a href="/login" class="del-link">login</a>
+        {% endif %}
     </li>
 </ul>
