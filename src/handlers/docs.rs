@@ -48,11 +48,13 @@ pub(crate) async fn list_docs() -> Vec<String> {
 
 /// GET /docs/:filename — render one markdown file into the content pane.
 /// The delete cross only shows for a logged-in session (the DELETE route
-/// is guarded by the write middleware regardless).
+/// is guarded by the write middleware regardless). htmx gets the bare
+/// pane; a direct load gets the whole explorer page.
 pub async fn doc_view(
     State(state): State<Arc<AppState>>,
     Path(filename): Path<String>,
     jar: CookieJar,
+    headers: axum::http::HeaderMap,
 ) -> Response {
     let Some(path) = safe_doc_path(&filename) else {
         return Html("not found".to_string()).into_response();
@@ -70,11 +72,18 @@ pub async fn doc_view(
     let mut content = String::new();
     html::push_html(&mut content, parser);
 
+    let is_admin = super::auth::is_admin(&state, &jar).await;
     let mut ctx = tera::Context::new();
     ctx.insert("filename", &filename);
     ctx.insert("content", &content);
-    ctx.insert("is_admin", &super::auth::is_admin(&state, &jar).await);
-    render(&state, "partials/doc_view.html", &ctx).into_response()
+    ctx.insert("is_admin", &is_admin);
+    let view = render(&state, "partials/doc_view.html", &ctx);
+
+    if super::is_htmx(&headers) {
+        view.into_response()
+    } else {
+        super::full_page(&state, is_admin, &view.0).await.into_response()
+    }
 }
 
 /// DELETE /docs/:filename — remove the file from disk (write-guarded by

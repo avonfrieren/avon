@@ -101,7 +101,9 @@ pub(crate) async fn sidebar_context(state: &AppState, is_admin: bool) -> tera::C
 /// "maps" folder for standalone ones.
 pub async fn index(State(state): State<Arc<AppState>>, jar: CookieJar) -> Html<String> {
     let is_admin = super::auth::is_admin(&state, &jar).await;
-    let ctx = sidebar_context(&state, is_admin).await;
+    let mut ctx = sidebar_context(&state, is_admin).await;
+    // No pane selected — the template falls back to its hint.
+    ctx.insert("content", "");
     render(&state, "explorer.html", &ctx)
 }
 
@@ -121,13 +123,23 @@ async fn list_images() -> Vec<String> {
     images
 }
 
-/// GET /imgs/:filename — unchanged, still just points at a static file.
-/// Not DB-driven yet.
+/// GET /imgs/:filename — still just points at a static file (not
+/// DB-driven yet). htmx gets the bare pane; a direct load gets the
+/// whole explorer page.
 pub async fn image_view(
     State(state): State<Arc<AppState>>,
     Path(filename): Path<String>,
+    jar: CookieJar,
+    headers: axum::http::HeaderMap,
 ) -> Html<String> {
     let mut ctx = tera::Context::new();
     ctx.insert("filename", &filename);
-    render(&state, "partials/image_view.html", &ctx)
+    let view = render(&state, "partials/image_view.html", &ctx);
+
+    if super::is_htmx(&headers) {
+        view
+    } else {
+        let is_admin = super::auth::is_admin(&state, &jar).await;
+        super::full_page(&state, is_admin, &view.0).await
+    }
 }

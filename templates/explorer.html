@@ -5,7 +5,13 @@
         {% include "partials/sidebar.html" %}
     </nav>
     <main id="content">
+        {# Filled when a content URL (/map/3, /docs/x.md, ...) is loaded
+           directly — a refresh lands back on what was displayed. #}
+        {% if content %}
+        {{ content | safe }}
+        {% else %}
         <p class="hint">Select an item on the left.</p>
+        {% endif %}
     </main>
 </div>
 {% endblock %}
