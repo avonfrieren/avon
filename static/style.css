@@ -253,16 +253,37 @@ ul {
     opacity: 1;
 }
 
-/* The time dashboard itself. */
+/* The time dashboard itself: main table on the left, the side stack
+   (checkpoints, import form, result message) vertically centered next
+   to it. */
 .dash-back {
     text-decoration: none;
 }
 
+.dash-layout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    margin-top: 16px;
+}
+
+.dash-layout .grid-wrap {
+    margin: 0;
+}
+
+.dash-side {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    max-width: 45vw;
+}
+
 .dash-message {
-    margin: 8px 0;
     border: 1px dashed #fff;
-    display: inline-block;
     padding: 4px 12px;
+    margin: 0;
 }
 
 /* A checkpoint start opens a new segment group. */
@@ -271,16 +292,11 @@ ul {
     border-top: 3px double #fff;
 }
 
-.cp-table {
-    margin: 16px auto 0;
-}
-
 .import-form {
     display: inline-flex;
     flex-direction: column;
     gap: 8px;
-    margin-top: 16px;
-    width: min(60ch, 85vw);
+    width: min(46ch, 40vw);
 }
 
 .import-form textarea {

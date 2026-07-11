@@ -3,76 +3,84 @@
        hx-push-url="true">{{ map_name }}</a> &mdash; {{ challenge_name }}
 </h2>
 
-{% if message %}<p class="dash-message">{{ message }}</p>{% endif %}
+{# Main table on the left; checkpoints, import form and its result
+   message stacked beside it, vertically centered. #}
+<div class="dash-layout">
+    <div class="grid-wrap">
+        <table class="challenges time-dash" id="time-dashboard">
+            <thead>
+                <tr>
+                    <th class="room">room</th>
+                    {% if is_admin %}<th title="checkpoint start">cp</th>{% endif %}
+                    <th>best</th>
+                    <th>run</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in rows %}
+                <tr{% if r.checkpoint_start %} class="cp-start"{% endif %}>
+                    <th class="room ro">{{ r.room_name }}</th>
+                    {% if is_admin %}
+                    <td>
+                        <input class="cell-check" type="checkbox"
+                               {% if r.checkpoint_start %}checked{% endif %}
+                               hx-post="/time/{{ challenge_id }}/checkpoint/{{ r.room_id }}"
+                               hx-target="#content"
+                               hx-swap="innerHTML">
+                    </td>
+                    {% endif %}
+                    <td class="ro">{% if r.best %}{{ r.best }}{% endif %}</td>
+                    <td class="ro">{% if r.run %}{{ r.run }}{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th class="room">total</th>
+                    {% if is_admin %}<td></td>{% endif %}
+                    <td>{% if sob_total %}{{ sob_total }}{% else %}&mdash;{% endif %}</td>
+                    <td>{% if run_total %}{{ run_total }}{% else %}&mdash;{% endif %}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
 
-<div class="grid-wrap">
-    <table class="challenges time-dash" id="time-dashboard">
-        <thead>
-            <tr>
-                <th class="room">room</th>
-                {% if is_admin %}<th title="checkpoint start">cp</th>{% endif %}
-                <th>best</th>
-                <th>run</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for r in rows %}
-            <tr{% if r.checkpoint_start %} class="cp-start"{% endif %}>
-                <th class="room ro">{{ r.room_name }}</th>
-                {% if is_admin %}
-                <td>
-                    <input class="cell-check" type="checkbox"
-                           {% if r.checkpoint_start %}checked{% endif %}
-                           hx-post="/time/{{ challenge_id }}/checkpoint/{{ r.room_id }}"
-                           hx-target="#content"
-                           hx-swap="innerHTML">
-                </td>
-                {% endif %}
-                <td class="ro">{% if r.best %}{{ r.best }}{% endif %}</td>
-                <td class="ro">{% if r.run %}{{ r.run }}{% endif %}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-        <tfoot>
-            <tr>
-                <th class="room">total</th>
-                {% if is_admin %}<td></td>{% endif %}
-                <td>{% if sob_total %}{{ sob_total }}{% else %}&mdash;{% endif %}</td>
-                <td>{% if run_total %}{{ run_total }}{% else %}&mdash;{% endif %}</td>
-            </tr>
-        </tfoot>
-    </table>
+    {% if checkpoints or is_admin %}
+    <div class="dash-side">
+        {% if checkpoints %}
+        <table class="challenges cp-table">
+            <thead>
+                <tr>
+                    <th>checkpoint</th>
+                    <th>rooms</th>
+                    <th>cp sob</th>
+                    <th>run time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cp in checkpoints %}
+                <tr>
+                    <td class="ro">{{ cp.name }}</td>
+                    <td class="ro">{{ cp.rooms }}</td>
+                    <td class="ro">{% if cp.sob %}{{ cp.sob }}{% else %}&mdash;{% endif %}</td>
+                    <td class="ro">{% if cp.run %}{{ cp.run }}{% else %}&mdash;{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        {% if is_admin %}
+        <form class="import-form"
+              hx-post="/time/{{ challenge_id }}/import"
+              hx-target="#content"
+              hx-swap="innerHTML">
+            <textarea name="data" rows="6" required></textarea>
+            <button type="submit">import run data</button>
+        </form>
+        {% endif %}
+
+        {% if message %}<p class="dash-message">{{ message }}</p>{% endif %}
+    </div>
+    {% endif %}
 </div>
-
-{% if checkpoints %}
-<table class="challenges cp-table">
-    <thead>
-        <tr>
-            <th>checkpoint</th>
-            <th>rooms</th>
-            <th>cp sob</th>
-            <th>run time</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for cp in checkpoints %}
-        <tr>
-            <td class="ro">{{ cp.name }}</td>
-            <td class="ro">{{ cp.rooms }}</td>
-            <td class="ro">{% if cp.sob %}{{ cp.sob }}{% else %}&mdash;{% endif %}</td>
-            <td class="ro">{% if cp.run %}{{ cp.run }}{% else %}&mdash;{% endif %}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-{% endif %}
-
-{% if is_admin %}
-<form class="import-form"
-      hx-post="/time/{{ challenge_id }}/import"
-      hx-target="#content"
-      hx-swap="innerHTML">
-    <textarea name="data" rows="6" required></textarea>
-    <button type="submit">import run data</button>
-</form>
-{% endif %}
