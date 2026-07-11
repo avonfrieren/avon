@@ -30,9 +30,10 @@ struct TimeRow {
     room_id: i32,
     room_name: String,
     checkpoint_start: bool,
+    /// Best segment: the room retried in a loop (the grid's value).
     best: Option<String>,
-    run_segment: Option<String>,
-    run_split: Option<String>,
+    /// The best complete run's cumulative time at this room.
+    run: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -98,7 +99,6 @@ async fn dashboard_context(
             .collect();
 
     let mut rows = Vec::with_capacity(rooms.len());
-    let mut prev_split: i64 = 0;
     let mut sob_total: i64 = 0;
     let mut sob_any = false;
     let mut run_total: Option<i64> = None;
@@ -109,9 +109,7 @@ async fn dashboard_context(
             sob_total += b;
         }
         let split = splits.get(room_id).copied();
-        let segment = split.map(|s| s - prev_split);
         if let Some(s) = split {
-            prev_split = s;
             run_total = Some(s);
         }
         rows.push(TimeRow {
@@ -119,8 +117,7 @@ async fn dashboard_context(
             room_name: room_name.clone(),
             checkpoint_start: *checkpoint_start,
             best: best.map(format_time),
-            run_segment: segment.map(format_time),
-            run_split: split.map(format_time),
+            run: split.map(format_time),
         });
     }
 

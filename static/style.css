@@ -265,11 +265,6 @@ ul {
     padding: 4px 12px;
 }
 
-.dash-legend {
-    margin-top: 8px;
-    opacity: 0.6;
-}
-
 /* A checkpoint start opens a new segment group. */
 .time-dash tr.cp-start th,
 .time-dash tr.cp-start td {
