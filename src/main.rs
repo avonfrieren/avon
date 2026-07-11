@@ -29,7 +29,7 @@ async fn main() {
 
     let state = Arc::new(AppState { db: pool, tera });
 
-    use handlers::{auth, campaigns, docs, grid, maps, sidebar};
+    use handlers::{auth, campaigns, docs, grid, maps, sidebar, time};
     let app = Router::new()
         .route("/", get(sidebar::index))
         .route("/login", get(auth::login))
@@ -53,6 +53,14 @@ async fn main() {
         )
         .route("/campaigns/new", get(campaigns::campaign_form))
         .route("/campaigns", post(campaigns::create_campaign))
+        .route("/time/:challenge_id", get(time::dashboard))
+        .route("/time/:challenge_id/import", post(time::import))
+        .route("/time/:challenge_id/cps/save", post(time::save_checkpoints))
+        .route("/time/:challenge_id/cps/reset", post(time::reset_checkpoints))
+        .route(
+            "/time/:challenge_id/checkpoint/:room_id",
+            post(time::toggle_checkpoint),
+        )
         .route("/cell/:room_id/:challenge_id", post(grid::update_cell))
         .route("/room/:id", post(grid::rename_room))
         .route("/map/:id/challenges", post(grid::add_challenge))
