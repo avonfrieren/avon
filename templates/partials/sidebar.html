@@ -3,7 +3,7 @@
    out-of-band extra alongside the map detail (map rename). #}
 <ul class="tree" id="sidebar-tree" {% if oob %}hx-swap-oob="true"{% endif %}>
     <li>
-        <details open>
+        <details>
             <summary>campaigns</summary>
             <ul>
                 {% for c in campaigns %}
@@ -13,7 +13,8 @@
                         <ul>
                             {% for m in c.maps %}
                             <li>
-                                <a href="#" hx-get="/map/{{ m.id }}" hx-target="#content">
+                                <a href="#" hx-get="/map/{{ m.id }}" hx-target="#content"
+                                   hx-push-url="true">
                                     {{ m.name }}
                                 </a>
                             </li>
@@ -54,12 +55,13 @@
         </details>
     </li>
     <li>
-        <details open>
+        <details>
             <summary>maps</summary>
             <ul>
                 {% for m in standalone_maps %}
                 <li>
-                    <a href="#" hx-get="/map/{{ m.id }}" hx-target="#content">
+                    <a href="#" hx-get="/map/{{ m.id }}" hx-target="#content"
+                       hx-push-url="true">
                         {{ m.name }}
                     </a>
                 </li>
@@ -82,7 +84,8 @@
             <ul>
                 {% for doc in docs %}
                 <li>
-                    <a href="#" hx-get="/docs/{{ doc }}" hx-target="#content">
+                    <a href="#" hx-get="/docs/{{ doc }}" hx-target="#content"
+                       hx-push-url="true">
                         {{ doc }}
                     </a>
                 </li>
@@ -98,7 +101,8 @@
             <ul>
                 {% for img in images %}
                 <li>
-                    <a href="#" hx-get="/imgs/{{ img }}" hx-target="#content">
+                    <a href="#" hx-get="/imgs/{{ img }}" hx-target="#content"
+                       hx-push-url="true">
                         {{ img }}
                     </a>
                 </li>

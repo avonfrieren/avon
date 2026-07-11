@@ -57,18 +57,27 @@ async fn map_by_id(state: &AppState, id: i32) -> MapRow {
 
 /// GET /map/:id — content pane for a single map, whether it's standalone
 /// or belongs to a campaign. Read-only unless the visitor is logged in.
+/// htmx gets the bare pane; a direct load gets the whole explorer page.
 pub async fn map_detail(
     State(state): State<Arc<AppState>>,
     Path(id): Path<i32>,
     jar: CookieJar,
+    headers: axum::http::HeaderMap,
 ) -> Html<String> {
     let map = map_by_id(&state, id).await;
+    let is_admin = super::auth::is_admin(&state, &jar).await;
 
     let mut ctx = tera::Context::new();
     ctx.insert("map", &map);
-    ctx.insert("is_admin", &super::auth::is_admin(&state, &jar).await);
+    ctx.insert("is_admin", &is_admin);
     insert_grid_context(&state, id, &mut ctx).await;
-    render(&state, "partials/map_detail.html", &ctx)
+    let detail = render(&state, "partials/map_detail.html", &ctx);
+
+    if super::is_htmx(&headers) {
+        detail
+    } else {
+        super::full_page(&state, is_admin, &detail.0).await
+    }
 }
 
 /// GET /maps/new — the map creation form (needs the campaign list for the
