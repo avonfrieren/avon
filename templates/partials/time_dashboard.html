@@ -19,7 +19,10 @@
             <tbody>
                 {% for r in rows %}
                 <tr{% if r.checkpoint_start %} class="cp-start"{% endif %}>
-                    <th class="room ro">{{ r.room_name }}</th>
+                    <th class="room ro">
+                        {{ r.room_name }}{% if r.checkpoint_real %}<span
+                            class="cp-real" title="real checkpoint">*</span>{% endif %}
+                    </th>
                     {% if is_admin %}
                     <td>
                         <input class="cell-check" type="checkbox"
@@ -71,13 +74,31 @@
         {% endif %}
 
         {% if is_admin %}
-        <form class="import-form"
-              hx-post="/time/{{ challenge_id }}/import"
-              hx-target="#content"
-              hx-swap="innerHTML">
-            <textarea name="data" rows="6" required></textarea>
-            <button type="submit">import run data</button>
-        </form>
+        <div class="dash-actions">
+            <button type="button" class="dash-btn"
+                    hx-post="/time/{{ challenge_id }}/cps/save"
+                    hx-confirm="Overwrite the map's real checkpoints with the current ones?"
+                    hx-target="#content"
+                    hx-swap="innerHTML">save as real cps</button>
+            <button type="button" class="dash-btn"
+                    hx-post="/time/{{ challenge_id }}/cps/reset"
+                    hx-target="#content"
+                    hx-swap="innerHTML">reset to real cps</button>
+        </div>
+
+        <button type="button" class="dash-btn"
+                onclick="document.getElementById('import-dialog').showModal()">
+            import run data
+        </button>
+        <dialog id="import-dialog">
+            <form class="import-form"
+                  hx-post="/time/{{ challenge_id }}/import"
+                  hx-target="#content"
+                  hx-swap="innerHTML">
+                <textarea name="data" rows="12" required autofocus></textarea>
+                <button type="submit" class="dash-btn">import</button>
+            </form>
+        </dialog>
         {% endif %}
 
         {% if message %}<p class="dash-message">{{ message }}</p>{% endif %}

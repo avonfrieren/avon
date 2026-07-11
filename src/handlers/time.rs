@@ -29,7 +29,10 @@ use crate::AppState;
 struct TimeRow {
     room_id: i32,
     room_name: String,
+    /// Working checkpoint flag — freely toggled to measure any segment.
     checkpoint_start: bool,
+    /// The map's actual checkpoint reference ("save as real"/"reset").
+    checkpoint_real: bool,
     /// Best segment: the room retried in a loop (the grid's value).
     best: Option<String>,
     /// The best complete run's cumulative time at this room.
@@ -71,8 +74,9 @@ async fn dashboard_context(
         .await
         .unwrap();
 
-    let rooms: Vec<(i32, String, bool)> = sqlx::query_as(
-        "SELECT id, name, checkpoint_start FROM rooms WHERE map_id = $1 ORDER BY position, id",
+    let rooms: Vec<(i32, String, bool, bool)> = sqlx::query_as(
+        "SELECT id, name, checkpoint_start, checkpoint_real
+         FROM rooms WHERE map_id = $1 ORDER BY position, id",
     )
     .bind(map_id)
     .fetch_all(&state.db)
@@ -102,7 +106,7 @@ async fn dashboard_context(
     let mut sob_total: i64 = 0;
     let mut sob_any = false;
     let mut run_total: Option<i64> = None;
-    for (room_id, room_name, checkpoint_start) in &rooms {
+    for (room_id, room_name, checkpoint_start, checkpoint_real) in &rooms {
         let best = bests.get(room_id).copied();
         if let Some(b) = best {
             sob_any = true;
@@ -116,6 +120,7 @@ async fn dashboard_context(
             room_id: *room_id,
             room_name: room_name.clone(),
             checkpoint_start: *checkpoint_start,
+            checkpoint_real: *checkpoint_real,
             best: best.map(format_time),
             run: split.map(format_time),
         });
@@ -124,9 +129,10 @@ async fn dashboard_context(
     // Per-checkpoint summary. The first room implicitly opens cp 1; the
     // table only shows up once at least one explicit start is flagged.
     let mut checkpoints: Vec<CheckpointRow> = Vec::new();
-    if rooms.iter().any(|(_, _, cp)| *cp) {
-        let mut group: Vec<&(i32, String, bool)> = Vec::new();
-        let mut groups: Vec<Vec<&(i32, String, bool)>> = Vec::new();
+    if rooms.iter().any(|(_, _, cp, _)| *cp) {
+        type Room = (i32, String, bool, bool);
+        let mut group: Vec<&Room> = Vec::new();
+        let mut groups: Vec<Vec<&Room>> = Vec::new();
         for room in &rooms {
             if room.2 && !group.is_empty() {
                 groups.push(std::mem::take(&mut group));
@@ -141,7 +147,7 @@ async fn dashboard_context(
         for (i, g) in groups.iter().enumerate() {
             let mut sob = 0i64;
             let mut sob_all = true;
-            for (room_id, _, _) in g {
+            for (room_id, ..) in g {
                 match bests.get(room_id) {
                     Some(b) => sob += b,
                     None => sob_all = false,
@@ -149,7 +155,7 @@ async fn dashboard_context(
             }
             // Run time for the group = last split minus the split before
             // the group; only meaningful when the run covers it.
-            let last_split = g.last().and_then(|(room_id, _, _)| splits.get(room_id).copied());
+            let last_split = g.last().and_then(|(room_id, ..)| splits.get(room_id).copied());
             let run = last_split.map(|s| s - prev);
             if let Some(s) = last_split {
                 prev = s;
@@ -348,6 +354,48 @@ pub async fn import(
     let mut ctx = dashboard_context(&state, challenge_id, map_id, &name).await;
     ctx.insert("is_admin", &true);
     ctx.insert("message", &message);
+    render(&state, "partials/time_dashboard.html", &ctx).into_response()
+}
+
+/// POST /time/:challenge_id/cps/save — freeze the current working
+/// checkpoints as the map's real ones.
+pub async fn save_checkpoints(
+    State(state): State<Arc<AppState>>,
+    Path(challenge_id): Path<i32>,
+) -> Response {
+    let Some((map_id, name)) = time_challenge(&state, challenge_id).await else {
+        return Html("not a time challenge".to_string()).into_response();
+    };
+
+    sqlx::query("UPDATE rooms SET checkpoint_real = checkpoint_start WHERE map_id = $1")
+        .bind(map_id)
+        .execute(&state.db)
+        .await
+        .ok();
+
+    let mut ctx = dashboard_context(&state, challenge_id, map_id, &name).await;
+    ctx.insert("is_admin", &true);
+    render(&state, "partials/time_dashboard.html", &ctx).into_response()
+}
+
+/// POST /time/:challenge_id/cps/reset — restore the working checkpoints
+/// from the map's real ones, discarding the current experiment.
+pub async fn reset_checkpoints(
+    State(state): State<Arc<AppState>>,
+    Path(challenge_id): Path<i32>,
+) -> Response {
+    let Some((map_id, name)) = time_challenge(&state, challenge_id).await else {
+        return Html("not a time challenge".to_string()).into_response();
+    };
+
+    sqlx::query("UPDATE rooms SET checkpoint_start = checkpoint_real WHERE map_id = $1")
+        .bind(map_id)
+        .execute(&state.db)
+        .await
+        .ok();
+
+    let mut ctx = dashboard_context(&state, challenge_id, map_id, &name).await;
+    ctx.insert("is_admin", &true);
     render(&state, "partials/time_dashboard.html", &ctx).into_response()
 }
 

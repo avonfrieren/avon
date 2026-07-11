@@ -292,11 +292,57 @@ ul {
     border-top: 3px double #fff;
 }
 
-.import-form {
-    display: inline-flex;
-    flex-direction: column;
+/* Rooms that start one of the map's REAL checkpoints keep a dim star,
+   so experiments with the working flags never lose the reference. */
+.cp-real {
+    opacity: 0.5;
+    margin-left: 4px;
+}
+
+/* The checkpoint summary has no sticky .room column, so it draws its
+   own left edge (the main grid gets it from the sticky cells). */
+.cp-table th:first-child,
+.cp-table td:first-child {
+    border-left: 1px solid #fff;
+}
+
+.dash-actions {
+    display: flex;
     gap: 8px;
-    width: min(46ch, 40vw);
+}
+
+.dash-btn {
+    background: #000;
+    color: #fff;
+    border: 1px solid #fff;
+    font: inherit;
+    padding: 4px 10px;
+    cursor: pointer;
+}
+
+.dash-btn:focus {
+    outline: 1px solid #fff;
+    outline-offset: 2px;
+}
+
+/* The import popup, centered in the viewport. */
+#import-dialog {
+    margin: auto;
+    background: #000;
+    color: #fff;
+    border: 1px solid #fff;
+    padding: 16px;
+}
+
+#import-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.75);
+}
+
+.import-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: min(70ch, 85vw);
 }
 
 .import-form textarea {
@@ -309,17 +355,10 @@ ul {
 }
 
 .import-form button {
-    background: #000;
-    color: #fff;
-    border: 1px solid #fff;
-    font: inherit;
-    padding: 4px 8px;
-    cursor: pointer;
     align-self: center;
 }
 
-.import-form textarea:focus,
-.import-form button:focus {
+.import-form textarea:focus {
     outline: 1px solid #fff;
     outline-offset: 2px;
 }

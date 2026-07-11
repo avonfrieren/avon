@@ -55,6 +55,8 @@ async fn main() {
         .route("/campaigns", post(campaigns::create_campaign))
         .route("/time/:challenge_id", get(time::dashboard))
         .route("/time/:challenge_id/import", post(time::import))
+        .route("/time/:challenge_id/cps/save", post(time::save_checkpoints))
+        .route("/time/:challenge_id/cps/reset", post(time::reset_checkpoints))
         .route(
             "/time/:challenge_id/checkpoint/:room_id",
             post(time::toggle_checkpoint),
