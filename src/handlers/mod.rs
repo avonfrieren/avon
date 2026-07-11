@@ -9,6 +9,7 @@ pub mod docs;
 pub mod grid;
 pub mod maps;
 pub mod sidebar;
+pub mod time;
 
 use axum::{http::HeaderMap, response::Html};
 

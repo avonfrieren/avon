@@ -230,6 +230,89 @@ ul {
     outline-offset: -2px;
 }
 
+/* Time-dashboard entry points on time column headers: visitors click
+   the name itself; admins (whose header is the rename input) get a
+   hover-reveal arrow in the top-left corner, mirroring the delete
+   cross on the right. */
+.challenges th .col-link {
+    text-decoration: none;
+}
+
+.challenges th .dash-link {
+    position: absolute;
+    top: 0;
+    left: 1px;
+    text-decoration: none;
+    font-size: 0.85em;
+    line-height: 1;
+    opacity: 0;
+}
+
+.challenges th:hover .dash-link,
+.dash-link:focus {
+    opacity: 1;
+}
+
+/* The time dashboard itself. */
+.dash-back {
+    text-decoration: none;
+}
+
+.dash-message {
+    margin: 8px 0;
+    border: 1px dashed #fff;
+    display: inline-block;
+    padding: 4px 12px;
+}
+
+.dash-legend {
+    margin-top: 8px;
+    opacity: 0.6;
+}
+
+/* A checkpoint start opens a new segment group. */
+.time-dash tr.cp-start th,
+.time-dash tr.cp-start td {
+    border-top: 3px double #fff;
+}
+
+.cp-table {
+    margin: 16px auto 0;
+}
+
+.import-form {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 16px;
+    width: min(60ch, 85vw);
+}
+
+.import-form textarea {
+    background: #000;
+    color: #fff;
+    border: 1px solid #fff;
+    font: inherit;
+    padding: 6px 8px;
+    resize: vertical;
+}
+
+.import-form button {
+    background: #000;
+    color: #fff;
+    border: 1px solid #fff;
+    font: inherit;
+    padding: 4px 8px;
+    cursor: pointer;
+    align-self: center;
+}
+
+.import-form textarea:focus,
+.import-form button:focus {
+    outline: 1px solid #fff;
+    outline-offset: 2px;
+}
+
 /* Destructive links (delete map/campaign): dimmed, plain. */
 .del-link {
     text-decoration: none;

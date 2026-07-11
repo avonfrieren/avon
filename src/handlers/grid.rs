@@ -89,7 +89,7 @@ pub struct GridRow {
 /// Milliseconds → "s.mmm" under a minute, "m:ss.mmm" beyond, "h:mm:ss.mmm"
 /// past the hour. Cells are mostly short segment times, so the compact form
 /// keeps the grid narrow.
-fn format_time(ms: i64) -> String {
+pub(crate) fn format_time(ms: i64) -> String {
     let total_secs = ms / 1000;
     let millis = ms % 1000;
     let secs = total_secs % 60;
@@ -114,7 +114,7 @@ fn format_value(kind: Kind, v: i64) -> String {
 
 /// "45.230" / "1:02,410" / "1:02:03.5" → milliseconds. Accepts a comma as
 /// the decimal separator. None = not a time (caller keeps the old value).
-fn parse_time(s: &str) -> Option<i64> {
+pub(crate) fn parse_time(s: &str) -> Option<i64> {
     let s = s.trim().replace(',', ".");
     let mut parts = s.split(':').rev();
     let secs: f64 = parts.next()?.parse().ok()?;

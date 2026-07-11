@@ -21,6 +21,17 @@
                    hx-confirm="Delete challenge '{{ ch.name }}' and all its values?"
                    hx-target="#challenge-grid"
                    hx-swap="outerHTML">&times;</a>
+                {% if ch.kind == "time" %}
+                {# Hover corner link to the time dashboard (the header
+                   itself is the rename input for admins). #}
+                <a href="#" class="dash-link" title="time dashboard"
+                   hx-get="/time/{{ ch.id }}" hx-target="#content"
+                   hx-push-url="true">&nearr;</a>
+                {% endif %}
+                {% elif ch.kind == "time" %}
+                <a href="#" class="col-link" title="time dashboard"
+                   hx-get="/time/{{ ch.id }}" hx-target="#content"
+                   hx-push-url="true">{{ ch.name }}</a>
                 {% else %}
                 {{ ch.name }}
                 {% endif %}
