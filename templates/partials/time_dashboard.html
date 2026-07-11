@@ -11,14 +11,14 @@
             <thead>
                 <tr>
                     <th class="room">room</th>
-                    {% if is_admin %}<th title="checkpoint start">cp</th>{% endif %}
+                    {% if is_admin %}<th title="checkpoint end (room included)">cp</th>{% endif %}
                     <th>best</th>
                     <th>run</th>
                 </tr>
             </thead>
             <tbody>
                 {% for r in rows %}
-                <tr{% if r.checkpoint_start %} class="cp-start"{% endif %}>
+                <tr{% if r.checkpoint_end %} class="cp-end"{% endif %}>
                     <th class="room ro">
                         {{ r.room_name }}{% if r.checkpoint_real %}<span
                             class="cp-real" title="real checkpoint">*</span>{% endif %}
@@ -26,7 +26,7 @@
                     {% if is_admin %}
                     <td>
                         <input class="cell-check" type="checkbox"
-                               {% if r.checkpoint_start %}checked{% endif %}
+                               {% if r.checkpoint_end %}checked{% endif %}
                                hx-post="/time/{{ challenge_id }}/checkpoint/{{ r.room_id }}"
                                hx-target="#content"
                                hx-swap="innerHTML">
@@ -100,8 +100,10 @@
             </form>
         </dialog>
         {% endif %}
-
-        {% if message %}<p class="dash-message">{{ message }}</p>{% endif %}
     </div>
     {% endif %}
 </div>
+
+{# Full width under everything: long import summaries can't crowd the
+   tables up there. #}
+{% if message %}<p class="dash-message">{{ message }}</p>{% endif %}

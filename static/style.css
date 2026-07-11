@@ -281,15 +281,16 @@ ul {
 }
 
 .dash-message {
+    display: inline-block;
     border: 1px dashed #fff;
     padding: 4px 12px;
-    margin: 0;
+    margin: 16px 0 0;
 }
 
-/* A checkpoint start opens a new segment group. */
-.time-dash tr.cp-start th,
-.time-dash tr.cp-start td {
-    border-top: 3px double #fff;
+/* A flagged room ends its segment — the separator sits under it. */
+.time-dash tr.cp-end th,
+.time-dash tr.cp-end td {
+    border-bottom: 3px double #fff;
 }
 
 /* Rooms that start one of the map's REAL checkpoints keep a dim star,

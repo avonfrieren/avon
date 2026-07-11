@@ -30,7 +30,7 @@ struct TimeRow {
     room_id: i32,
     room_name: String,
     /// Working checkpoint flag — freely toggled to measure any segment.
-    checkpoint_start: bool,
+    checkpoint_end: bool,
     /// The map's actual checkpoint reference ("save as real"/"reset").
     checkpoint_real: bool,
     /// Best segment: the room retried in a loop (the grid's value).
@@ -75,7 +75,7 @@ async fn dashboard_context(
         .unwrap();
 
     let rooms: Vec<(i32, String, bool, bool)> = sqlx::query_as(
-        "SELECT id, name, checkpoint_start, checkpoint_real
+        "SELECT id, name, checkpoint_end, checkpoint_real
          FROM rooms WHERE map_id = $1 ORDER BY position, id",
     )
     .bind(map_id)
@@ -106,7 +106,7 @@ async fn dashboard_context(
     let mut sob_total: i64 = 0;
     let mut sob_any = false;
     let mut run_total: Option<i64> = None;
-    for (room_id, room_name, checkpoint_start, checkpoint_real) in &rooms {
+    for (room_id, room_name, checkpoint_end, checkpoint_real) in &rooms {
         let best = bests.get(room_id).copied();
         if let Some(b) = best {
             sob_any = true;
@@ -119,25 +119,26 @@ async fn dashboard_context(
         rows.push(TimeRow {
             room_id: *room_id,
             room_name: room_name.clone(),
-            checkpoint_start: *checkpoint_start,
+            checkpoint_end: *checkpoint_end,
             checkpoint_real: *checkpoint_real,
             best: best.map(format_time),
             run: split.map(format_time),
         });
     }
 
-    // Per-checkpoint summary. The first room implicitly opens cp 1; the
-    // table only shows up once at least one explicit start is flagged.
+    // Per-checkpoint summary. A flagged room ENDS its segment (checking
+    // a room includes it); whatever follows the last flag forms the
+    // final group. The table only shows up once a flag is set.
     let mut checkpoints: Vec<CheckpointRow> = Vec::new();
     if rooms.iter().any(|(_, _, cp, _)| *cp) {
         type Room = (i32, String, bool, bool);
         let mut group: Vec<&Room> = Vec::new();
         let mut groups: Vec<Vec<&Room>> = Vec::new();
         for room in &rooms {
-            if room.2 && !group.is_empty() {
+            group.push(room);
+            if room.2 {
                 groups.push(std::mem::take(&mut group));
             }
-            group.push(room);
         }
         if !group.is_empty() {
             groups.push(group);
@@ -367,7 +368,7 @@ pub async fn save_checkpoints(
         return Html("not a time challenge".to_string()).into_response();
     };
 
-    sqlx::query("UPDATE rooms SET checkpoint_real = checkpoint_start WHERE map_id = $1")
+    sqlx::query("UPDATE rooms SET checkpoint_real = checkpoint_end WHERE map_id = $1")
         .bind(map_id)
         .execute(&state.db)
         .await
@@ -388,7 +389,7 @@ pub async fn reset_checkpoints(
         return Html("not a time challenge".to_string()).into_response();
     };
 
-    sqlx::query("UPDATE rooms SET checkpoint_start = checkpoint_real WHERE map_id = $1")
+    sqlx::query("UPDATE rooms SET checkpoint_end = checkpoint_real WHERE map_id = $1")
         .bind(map_id)
         .execute(&state.db)
         .await
@@ -409,7 +410,7 @@ pub async fn toggle_checkpoint(
         return Html("not a time challenge".to_string()).into_response();
     };
 
-    sqlx::query("UPDATE rooms SET checkpoint_start = NOT checkpoint_start WHERE id = $1")
+    sqlx::query("UPDATE rooms SET checkpoint_end = NOT checkpoint_end WHERE id = $1")
         .bind(room_id)
         .execute(&state.db)
         .await
