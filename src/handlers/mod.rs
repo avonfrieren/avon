@@ -5,6 +5,7 @@
 
 pub mod auth;
 pub mod campaigns;
+pub mod docs;
 pub mod grid;
 pub mod maps;
 pub mod sidebar;

@@ -1,0 +1,15 @@
+{% if is_admin %}
+<h2 class="map-head">
+    {{ filename }}
+    <a href="#" class="del-x"
+       title="delete doc"
+       hx-delete="/docs/{{ filename }}"
+       hx-confirm="Delete '{{ filename }}' from the site? (your local copy is untouched)">&times;</a>
+</h2>
+{% else %}
+<h2>{{ filename }}</h2>
+{% endif %}
+
+{# Rendered by pulldown-cmark server-side; the file is trusted (only the
+   admin can put files in static/docs/), hence the |safe. #}
+<div class="doc-view">{{ content | safe }}</div>

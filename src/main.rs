@@ -29,12 +29,16 @@ async fn main() {
 
     let state = Arc::new(AppState { db: pool, tera });
 
-    use handlers::{auth, campaigns, grid, maps, sidebar};
+    use handlers::{auth, campaigns, docs, grid, maps, sidebar};
     let app = Router::new()
         .route("/", get(sidebar::index))
         .route("/login", get(auth::login))
         .route("/logout", post(auth::logout))
         .route("/imgs/:filename", get(sidebar::image_view))
+        .route(
+            "/docs/:filename",
+            get(docs::doc_view).delete(docs::delete_doc),
+        )
         .route("/map/:id", get(maps::map_detail).delete(maps::delete_map))
         .route("/map/:id/rename", post(maps::rename_map))
         .route("/maps/new", get(maps::map_form))

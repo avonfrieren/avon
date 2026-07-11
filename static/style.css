@@ -354,6 +354,89 @@ input.map-name:focus {
     text-align: center;
 }
 
+/* Rendered markdown (static/docs/). The global reset strips default
+   margins and list styles, so the usual document styling comes back
+   explicitly here — scoped to .doc-view only. */
+.doc-view {
+    width: min(70ch, 85vw);
+    max-height: 80vh;
+    overflow-y: auto;
+    margin: 16px auto 0;
+    text-align: left;
+    line-height: 1.5;
+}
+
+.doc-view h1,
+.doc-view h2,
+.doc-view h3,
+.doc-view h4 {
+    margin: 20px 0 8px;
+}
+
+.doc-view h1 {
+    border-bottom: 1px solid #fff;
+    padding-bottom: 4px;
+}
+
+.doc-view p {
+    margin: 8px 0;
+}
+
+.doc-view ul,
+.doc-view ol {
+    margin: 8px 0;
+    padding-left: 28px;
+}
+
+.doc-view ul {
+    list-style: disc;
+}
+
+.doc-view ol {
+    list-style: decimal;
+}
+
+.doc-view code {
+    border: 1px solid #666;
+    padding: 0 4px;
+}
+
+.doc-view pre {
+    border: 1px solid #fff;
+    padding: 8px 12px;
+    margin: 8px 0;
+    overflow-x: auto;
+}
+
+.doc-view pre code {
+    border: none;
+    padding: 0;
+}
+
+.doc-view blockquote {
+    border-left: 3px solid #fff;
+    padding-left: 12px;
+    margin: 8px 0;
+    opacity: 0.8;
+}
+
+.doc-view table {
+    border-collapse: collapse;
+    margin: 8px 0;
+}
+
+.doc-view th,
+.doc-view td {
+    border: 1px solid #fff;
+    padding: 4px 10px;
+}
+
+.doc-view hr {
+    border: none;
+    border-top: 1px solid #fff;
+    margin: 16px 0;
+}
+
 /* Ctrl+K search palette. */
 #search-overlay {
     position: fixed;
