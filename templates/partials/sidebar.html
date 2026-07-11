@@ -94,6 +94,23 @@
 
     <li>
         <details>
+            <summary>docs</summary>
+            <ul>
+                {% for doc in docs %}
+                <li>
+                    <a href="#" hx-get="/docs/{{ doc }}" hx-target="#content">
+                        {{ doc }}
+                    </a>
+                </li>
+                {% else %}
+                <li class="empty">(no docs yet)</li>
+                {% endfor %}
+            </ul>
+        </details>
+    </li>
+
+    <li>
+        <details>
             <summary>imgs</summary>
             <ul>
                 {% for img in images %}

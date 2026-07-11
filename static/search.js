@@ -32,6 +32,9 @@
         document.querySelectorAll('.sidebar details details > summary').forEach(function (s) {
             items.push({ type: 'campaign', name: s.textContent.trim(), el: s });
         });
+        document.querySelectorAll('.sidebar a[hx-get^="/docs/"]').forEach(function (a) {
+            items.push({ type: 'doc', name: a.textContent.trim(), el: a });
+        });
         document.querySelectorAll('.sidebar a[hx-get^="/imgs/"]').forEach(function (a) {
             items.push({ type: 'img', name: a.textContent.trim(), el: a });
         });

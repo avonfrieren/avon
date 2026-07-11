@@ -85,11 +85,13 @@ pub(crate) async fn sidebar_context(state: &AppState, is_admin: bool) -> tera::C
         .unwrap_or_default();
 
     let images = list_images().await;
+    let docs = super::docs::list_docs().await;
 
     let mut ctx = tera::Context::new();
     ctx.insert("campaigns", &campaigns_with_maps);
     ctx.insert("standalone_maps", &standalone_maps);
     ctx.insert("images", &images);
+    ctx.insert("docs", &docs);
     ctx.insert("is_admin", &is_admin);
     ctx
 }
