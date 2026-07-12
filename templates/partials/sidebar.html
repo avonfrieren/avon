@@ -18,8 +18,6 @@
                                     {{ m.name }}
                                 </a>
                             </li>
-                            {% else %}
-                            <li class="empty">(no maps yet)</li>
                             {% endfor %}
                             {% if is_admin %}
                             <li>
@@ -41,8 +39,6 @@
                         </ul>
                     </details>
                 </li>
-                {% else %}
-                <li class="empty">(no campaigns yet)</li>
                 {% endfor %}
                 {% if is_admin %}
                 <li>
@@ -65,8 +61,6 @@
                         {{ m.name }}
                     </a>
                 </li>
-                {% else %}
-                <li class="empty">(no standalone maps yet)</li>
                 {% endfor %}
                 {% if is_admin %}
                 <li>
