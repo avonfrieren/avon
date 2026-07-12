@@ -74,7 +74,19 @@ async fn main() {
             "/challenge/:id",
             post(grid::rename_challenge).delete(grid::delete_challenge),
         )
-        .nest_service("/static", ServeDir::new("static"))
+        // Assets are referenced with ?v=<version> URLs, so they can be
+        // cached hard: a release changes every URL, which forces the
+        // refetch that a plain deploy never triggered (browsers cache
+        // heuristically off ServeDir's Last-Modified otherwise).
+        .nest_service(
+            "/static",
+            tower::ServiceBuilder::new()
+                .layer(tower_http::set_header::SetResponseHeaderLayer::overriding(
+                    axum::http::header::CACHE_CONTROL,
+                    axum::http::HeaderValue::from_static("public, max-age=31536000, immutable"),
+                ))
+                .service(ServeDir::new("static")),
+        )
         // The write guard: GETs stay public, everything else needs a
         // session. Sits outside the routes so no handler can forget it.
         .layer(axum::middleware::from_fn_with_state(
