@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <!-- Fira Code's own lowercase 'a', traced from firacode_regular.ttf
+         (fonts don't load inside favicons, so the outline is embedded).
+         The transform maps the glyph's bounding box, centered, to a
+         40-unit height at (50,50); scale(s,-s) flips the font's y-up
+         coordinates into SVG's y-down. -->
+    <rect width="100" height="100" fill="#000"/>
+    <rect x="7" y="7" width="86" height="86" fill="none" stroke="#e5bebb" stroke-width="7"/>
+    <path fill="#fff" transform="translate(28.543 69.162) scale(0.03643 -0.03643)"
+          d="M955 230 Q955 167 976 138 Q997 109 1041 95 L1000 -23 Q932 -14 881 20.5 Q830 55 807 125 Q750 52 665 14.5 Q580 -23 477 -23 Q319 -23 228 66 Q137 155 137 302 Q137 465 264 552 Q391 639 631 639 L786 639 L786 727 Q786 841 719.5 888.5 Q653 936 535 936 Q483 936 413 923.5 Q343 911 261 882 L217 1009 Q314 1045 399 1060 Q484 1075 561 1075 Q758 1075 856.5 983.5 Q955 892 955 735 L955 230 Z M520 105 Q598 105 669 144.5 Q740 184 786 254 L786 525 L634 525 Q460 525 388.5 465 Q317 405 317 304 Q317 206 367.5 155.5 Q418 105 520 105 Z"/>
+</svg>
