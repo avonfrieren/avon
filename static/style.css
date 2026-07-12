@@ -48,6 +48,15 @@ ul {
     text-decoration: none;
 }
 
+/* Which binary is live, bottom-left, out of the way. */
+.app-version {
+    position: fixed;
+    bottom: 6px;
+    left: 8px;
+    font-size: 11px;
+    color: #e5bebb;
+}
+
 #content {
     position: absolute;
     top: 50%;

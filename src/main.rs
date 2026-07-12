@@ -25,7 +25,13 @@ async fn main() {
     let pool = db::init_pool(&database_url).await;
 
     // Loads every .html file under templates/ recursively.
-    let tera = Tera::new("templates/**/*.html").expect("Failed to load templates");
+    let mut tera = Tera::new("templates/**/*.html").expect("Failed to load templates");
+    // The version templates display comes from Cargo.toml, baked into the
+    // binary at compile time — so the footer number proves which binary
+    // is actually running, which is the whole point of showing it.
+    tera.register_function("version", |_: &std::collections::HashMap<String, tera::Value>| {
+        Ok(tera::Value::String(env!("CARGO_PKG_VERSION").to_string()))
+    });
 
     let state = Arc::new(AppState { db: pool, tera });
 
