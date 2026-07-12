@@ -1,0 +1,109 @@
+<h2>
+    <a href="#" class="dash-back" hx-get="/map/{{ map_id }}" hx-target="#content"
+       hx-push-url="true">{{ map_name }}</a> &mdash; {{ challenge_name }}
+</h2>
+
+{# Main table on the left; checkpoints, import form and its result
+   message stacked beside it, vertically centered. #}
+<div class="dash-layout">
+    <div class="grid-wrap">
+        <table class="challenges time-dash" id="time-dashboard">
+            <thead>
+                <tr>
+                    <th class="room">room</th>
+                    {% if is_admin %}<th title="checkpoint end (room included)">cp</th>{% endif %}
+                    <th>best</th>
+                    <th>run</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in rows %}
+                <tr{% if r.checkpoint_end %} class="cp-end"{% endif %}>
+                    <th class="room ro">
+                        {{ r.room_name }}{% if r.checkpoint_real %}<span
+                            class="cp-real" title="real checkpoint">*</span>{% endif %}
+                    </th>
+                    {% if is_admin %}
+                    <td>
+                        <input class="cell-check" type="checkbox"
+                               {% if r.checkpoint_end %}checked{% endif %}
+                               hx-post="/time/{{ challenge_id }}/checkpoint/{{ r.room_id }}"
+                               hx-target="#content"
+                               hx-swap="innerHTML">
+                    </td>
+                    {% endif %}
+                    <td class="ro">{% if r.best %}{{ r.best }}{% endif %}</td>
+                    <td class="ro">{% if r.run %}{{ r.run }}{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th class="room">total</th>
+                    {% if is_admin %}<td></td>{% endif %}
+                    <td>{% if sob_total %}{{ sob_total }}{% else %}&mdash;{% endif %}</td>
+                    <td>{% if run_total %}{{ run_total }}{% else %}&mdash;{% endif %}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    {% if checkpoints or is_admin %}
+    <div class="dash-side">
+        {% if checkpoints %}
+        <table class="challenges cp-table">
+            <thead>
+                <tr>
+                    <th>checkpoint</th>
+                    <th>rooms</th>
+                    <th>cp sob</th>
+                    <th>run time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cp in checkpoints %}
+                <tr>
+                    <td class="ro">{{ cp.name }}</td>
+                    <td class="ro">{{ cp.rooms }}</td>
+                    <td class="ro">{% if cp.sob %}{{ cp.sob }}{% else %}&mdash;{% endif %}</td>
+                    <td class="ro">{% if cp.run %}{{ cp.run }}{% else %}&mdash;{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        {% if is_admin %}
+        <div class="dash-actions">
+            <button type="button" class="dash-btn"
+                    hx-post="/time/{{ challenge_id }}/cps/save"
+                    hx-confirm="Overwrite the map's real checkpoints with the current ones?"
+                    hx-target="#content"
+                    hx-swap="innerHTML">save as real cps</button>
+            <button type="button" class="dash-btn"
+                    hx-post="/time/{{ challenge_id }}/cps/reset"
+                    hx-target="#content"
+                    hx-swap="innerHTML">reset to real cps</button>
+        </div>
+
+        <button type="button" class="dash-btn"
+                onclick="document.getElementById('import-dialog').showModal()">
+            import run data
+        </button>
+        <dialog id="import-dialog">
+            <form class="import-form"
+                  hx-post="/time/{{ challenge_id }}/import"
+                  hx-target="#content"
+                  hx-swap="innerHTML">
+                <textarea name="data" rows="12" required autofocus></textarea>
+                <button type="submit" class="dash-btn">import</button>
+            </form>
+        </dialog>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+{# Full width under everything: long import summaries can't crowd the
+   tables up there. #}
+{% if message %}<p class="dash-message">{{ message }}</p>{% endif %}

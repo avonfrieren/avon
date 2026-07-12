@@ -1,6 +1,8 @@
 {# Only the <table> carries the swap id: the scrollable .grid-wrap around it
    (in map_detail.html) survives each cell edit, so the scroll position does
-   too. #}
+   too. When the visitor isn't logged in (is_admin false), every input is
+   replaced by plain text — the write middleware is the real barrier, this
+   is just the honest UI for it. #}
 {% if grid_rows %}
 <table class="challenges" id="challenge-grid">
     <thead>
@@ -8,6 +10,7 @@
             <th class="room">room</th>
             {% for ch in grid_challenges %}
             <th>
+                {% if is_admin %}
                 <input class="col-name" name="name" value="{{ ch.name }}"
                        size="{{ ch.name | length + 1 }}"
                        hx-post="/challenge/{{ ch.id }}"
@@ -18,6 +21,20 @@
                    hx-confirm="Delete challenge '{{ ch.name }}' and all its values?"
                    hx-target="#challenge-grid"
                    hx-swap="outerHTML">&times;</a>
+                {% if ch.kind == "time" %}
+                {# Hover corner link to the time dashboard (the header
+                   itself is the rename input for admins). #}
+                <a href="#" class="dash-link" title="time dashboard"
+                   hx-get="/time/{{ ch.id }}" hx-target="#content"
+                   hx-push-url="true">&nearr;</a>
+                {% endif %}
+                {% elif ch.kind == "time" %}
+                <a href="#" class="col-link" title="time dashboard"
+                   hx-get="/time/{{ ch.id }}" hx-target="#content"
+                   hx-push-url="true">{{ ch.name }}</a>
+                {% else %}
+                {{ ch.name }}
+                {% endif %}
             </th>
             {% endfor %}
         </tr>
@@ -25,16 +42,21 @@
     <tbody>
         {% for row in grid_rows %}
         <tr>
-            <th class="room">
+            <th class="room{% if not is_admin %} ro{% endif %}">
+                {% if is_admin %}
                 <input class="room-name" name="name" value="{{ row.room_name }}"
                        hx-post="/room/{{ row.room_id }}"
                        hx-trigger="change"
                        hx-target="#challenge-grid"
                        hx-swap="outerHTML">
+                {% else %}
+                {{ row.room_name }}
+                {% endif %}
             </th>
             {% for cell in row.cells %}
-            <td>
+            <td{% if not is_admin %} class="ro"{% endif %}>
                 {% if cell.kind == "bool" %}
+                {% if is_admin %}
                 {# An unchecked box sends no field at all — the handler
                    reads that as "clear the cell". #}
                 <input class="cell-check" type="checkbox" name="value" value="1"
@@ -43,13 +65,17 @@
                        hx-trigger="change"
                        hx-target="#challenge-grid"
                        hx-swap="outerHTML">
+                {% elif cell.value and cell.value != "0" %}&check;{% endif %}
                 {% else %}
-                <input class="cell" name="value"
+                {% if is_admin %}
+                <input class="cell{% if cell.off_frame %} off-frame{% endif %}" name="value"
                        value="{% if cell.value %}{{ cell.value }}{% endif %}"
+                       {% if cell.off_frame %}title="not a multiple of 0.017 (one game frame)"{% endif %}
                        hx-post="/cell/{{ row.room_id }}/{{ cell.challenge_id }}"
                        hx-trigger="change"
                        hx-target="#challenge-grid"
                        hx-swap="outerHTML">
+                {% elif cell.value %}{{ cell.value }}{% endif %}
                 {% endif %}
             </td>
             {% endfor %}

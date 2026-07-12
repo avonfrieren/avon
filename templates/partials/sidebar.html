@@ -1,6 +1,9 @@
-<ul class="tree">
+{# id + optional oob: rename handlers return this partial to refresh the
+   tree in place — as the swap target itself (campaign rename) or as an
+   out-of-band extra alongside the map detail (map rename). #}
+<ul class="tree" id="sidebar-tree" {% if oob %}hx-swap-oob="true"{% endif %}>
     <li>
-        <details open>
+        <details>
             <summary>campaigns</summary>
             <ul>
                 {% for c in campaigns %}
@@ -10,13 +13,23 @@
                         <ul>
                             {% for m in c.maps %}
                             <li>
-                                <a href="#" hx-get="/map/{{ m.id }}" hx-target="#content">
+                                <a href="#" hx-get="/map/{{ m.id }}" hx-target="#content"
+                                   hx-push-url="true">
                                     {{ m.name }}
                                 </a>
                             </li>
                             {% else %}
                             <li class="empty">(no maps yet)</li>
                             {% endfor %}
+                            {% if is_admin %}
+                            <li>
+                                <a href="#" class="del-link"
+                                   hx-get="/campaign/{{ c.id }}/rename"
+                                   hx-target="closest li"
+                                   hx-swap="innerHTML">
+                                    &#9998; rename campaign
+                                </a>
+                            </li>
                             <li>
                                 <a href="#" class="del-link"
                                    hx-delete="/campaign/{{ c.id }}"
@@ -24,56 +37,72 @@
                                     &times; delete campaign
                                 </a>
                             </li>
+                            {% endif %}
                         </ul>
                     </details>
                 </li>
                 {% else %}
                 <li class="empty">(no campaigns yet)</li>
                 {% endfor %}
+                {% if is_admin %}
                 <li>
                     <a href="#" class="new-link" hx-get="/campaigns/new" hx-target="#content">
                         + new campaign
                     </a>
                 </li>
+                {% endif %}
             </ul>
         </details>
     </li>
-
     <li>
-        <details open>
+        <details>
             <summary>maps</summary>
             <ul>
                 {% for m in standalone_maps %}
                 <li>
-                    <a href="#" hx-get="/map/{{ m.id }}" hx-target="#content">
+                    <a href="#" hx-get="/map/{{ m.id }}" hx-target="#content"
+                       hx-push-url="true">
                         {{ m.name }}
                     </a>
                 </li>
                 {% else %}
                 <li class="empty">(no standalone maps yet)</li>
                 {% endfor %}
+                {% if is_admin %}
                 <li>
                     <a href="#" class="new-link" hx-get="/maps/new" hx-target="#content">
                         + new map
                     </a>
                 </li>
+                {% endif %}
             </ul>
         </details>
     </li>
-
     <li>
-        <a href="https://github.com/avonfrieren/celeste" target="_blank" rel="noopener">
-            github
-        </a>
+        <details>
+            <summary>docs</summary>
+            <ul>
+                {% for doc in docs %}
+                <li>
+                    <a href="#" hx-get="/docs/{{ doc }}" hx-target="#content"
+                       hx-push-url="true">
+                        {{ doc }}
+                    </a>
+                </li>
+                {% else %}
+                <li class="empty">(no docs yet)</li>
+                {% endfor %}
+            </ul>
+        </details>
     </li>
-
     <li>
         <details>
             <summary>imgs</summary>
             <ul>
                 {% for img in images %}
                 <li>
-                    <a href="#" hx-get="/imgs/{{ img }}" hx-target="#content">
+                    <a href="#" hx-get="/imgs/{{ img }}" hx-target="#content"
+                       hx-push-url="true">
                         {{ img }}
                     </a>
                 </li>
@@ -82,5 +111,12 @@
                 {% endfor %}
             </ul>
         </details>
+    </li>
+    <li>
+        {% if is_admin %}
+        <a href="#" class="del-link" hx-post="/logout">logout</a>
+        {% else %}
+        <a href="/login" class="del-link">login</a>
+        {% endif %}
     </li>
 </ul>

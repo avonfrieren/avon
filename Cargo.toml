@@ -1,17 +1,21 @@
 [package]
 name = "avon"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
 
 [dependencies]
 axum = "0.7"
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "fs"] }
-sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "macros", "chrono"] }
+sqlx = { version = "0.8", features = ["runtime-tokio-rustls", "postgres", "macros", "chrono"] }
 tera = "1"
 serde = { version = "1", features = ["derive"] }
 dotenvy = "0.15"
 tower-http = { version = "0.5", features = ["fs"] }
 chrono = { version = "0.4", features = ["serde"] }
+axum-extra = { version = "0.9", features = ["cookie"] }
+rand = "0.8"
+sha2 = "0.10"
+pulldown-cmark = "0.13"
 
 [profile.dev]
 debug = 0

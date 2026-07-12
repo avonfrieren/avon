@@ -5,7 +5,8 @@
       "name": "avon",
       "runtimeExecutable": "cargo",
       "runtimeArgs": ["run"],
-      "port": 3000
+      "port": 3000,
+      "autoPort": true
     }
   ]
 }

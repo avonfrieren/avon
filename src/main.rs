@@ -1,7 +1,10 @@
 mod db;
 mod handlers;
 
-use axum::{routing::get, Router};
+use axum::{
+    routing::{get, post},
+    Router,
+};
 use std::sync::Arc;
 use tera::Tera;
 use tower_http::services::ServeDir;
@@ -22,46 +25,62 @@ async fn main() {
     let pool = db::init_pool(&database_url).await;
 
     // Loads every .html file under templates/ recursively.
-    let tera = Tera::new("templates/**/*.html").expect("Failed to load templates");
+    let mut tera = Tera::new("templates/**/*.html").expect("Failed to load templates");
+    // The version templates display comes from Cargo.toml, baked into the
+    // binary at compile time — so the footer number proves which binary
+    // is actually running, which is the whole point of showing it.
+    tera.register_function("version", |_: &std::collections::HashMap<String, tera::Value>| {
+        Ok(tera::Value::String(env!("CARGO_PKG_VERSION").to_string()))
+    });
 
     let state = Arc::new(AppState { db: pool, tera });
 
+    use handlers::{auth, campaigns, docs, grid, maps, sidebar, time};
     let app = Router::new()
-        .route("/", get(handlers::explorer::index))
+        .route("/", get(sidebar::index))
+        .route("/login", get(auth::login))
+        .route("/logout", post(auth::logout))
+        .route("/imgs/:filename", get(sidebar::image_view))
         .route(
-            "/map/:id",
-            get(handlers::explorer::map_detail).delete(handlers::explorer::delete_map),
+            "/docs/:filename",
+            get(docs::doc_view).delete(docs::delete_doc),
         )
-        .route(
-            "/cell/:room_id/:challenge_id",
-            axum::routing::post(handlers::explorer::update_cell),
-        )
-        .route(
-            "/room/:id",
-            axum::routing::post(handlers::explorer::rename_room),
-        )
-        .route(
-            "/map/:id/challenges",
-            axum::routing::post(handlers::explorer::add_challenge),
-        )
-        .route(
-            "/challenge/:id",
-            axum::routing::post(handlers::explorer::rename_challenge)
-                .delete(handlers::explorer::delete_challenge),
-        )
+        .route("/map/:id", get(maps::map_detail).delete(maps::delete_map))
+        .route("/map/:id/rename", post(maps::rename_map))
+        .route("/maps/new", get(maps::map_form))
+        .route("/maps", post(maps::create_map))
         .route(
             "/campaign/:id",
-            axum::routing::delete(handlers::explorer::delete_campaign),
+            axum::routing::delete(campaigns::delete_campaign),
         )
-        .route("/campaigns/new", get(handlers::explorer::campaign_form))
         .route(
-            "/campaigns",
-            axum::routing::post(handlers::explorer::create_campaign),
+            "/campaign/:id/rename",
+            get(campaigns::campaign_rename_form).post(campaigns::rename_campaign),
         )
-        .route("/maps/new", get(handlers::explorer::map_form))
-        .route("/maps", axum::routing::post(handlers::explorer::create_map))
-        .route("/imgs/:filename", get(handlers::explorer::image_view))
+        .route("/campaigns/new", get(campaigns::campaign_form))
+        .route("/campaigns", post(campaigns::create_campaign))
+        .route("/time/:challenge_id", get(time::dashboard))
+        .route("/time/:challenge_id/import", post(time::import))
+        .route("/time/:challenge_id/cps/save", post(time::save_checkpoints))
+        .route("/time/:challenge_id/cps/reset", post(time::reset_checkpoints))
+        .route(
+            "/time/:challenge_id/checkpoint/:room_id",
+            post(time::toggle_checkpoint),
+        )
+        .route("/cell/:room_id/:challenge_id", post(grid::update_cell))
+        .route("/room/:id", post(grid::rename_room))
+        .route("/map/:id/challenges", post(grid::add_challenge))
+        .route(
+            "/challenge/:id",
+            post(grid::rename_challenge).delete(grid::delete_challenge),
+        )
         .nest_service("/static", ServeDir::new("static"))
+        // The write guard: GETs stay public, everything else needs a
+        // session. Sits outside the routes so no handler can forget it.
+        .layer(axum::middleware::from_fn_with_state(
+            state.clone(),
+            auth::require_admin_for_writes,
+        ))
         .with_state(state);
 
     // Alwaysdata injects PORT (and IP) into the environment for custom sites.

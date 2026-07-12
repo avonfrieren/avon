@@ -44,6 +44,19 @@ ul {
     padding-left: 0;
 }
 
+.sidebar a {
+    text-decoration: none;
+}
+
+/* Which binary is live, bottom-left, out of the way. */
+.app-version {
+    position: fixed;
+    bottom: 6px;
+    left: 8px;
+    font-size: 11px;
+    color: #e5bebb;
+}
+
 #content {
     position: absolute;
     top: 50%;
@@ -100,7 +113,7 @@ ul {
     background: #000;
     border-left: 1px solid #fff;
     padding: 4px 8px;
-    text-align: left;
+    text-align: center;
     font-weight: normal;
     z-index: 1;
 }
@@ -162,7 +175,7 @@ ul {
     font: inherit;
     width: 8ch;
     padding: 4px 8px;
-    text-align: left;
+    text-align: center;
 }
 
 .challenges input.room-name:focus {
@@ -185,15 +198,179 @@ ul {
     outline-offset: 1px;
 }
 
-/* Column-delete crosses: barely-there until hovered. */
-.challenges th .del-x {
+/* Delete crosses take no layout space: absolutely positioned in the top
+   right corner of their header/title and invisible until it is hovered.
+   (thead th is sticky and .map-head relative, so both anchor the
+   absolute positioning.) */
+.del-x {
+    position: absolute;
+    top: 0;
+    right: 1px;
     text-decoration: none;
-    opacity: 0.35;
-    margin-left: 6px;
+    font-size: 0.85em;
+    line-height: 1;
+    opacity: 0;
 }
 
-.challenges th .del-x:hover {
+.challenges th:hover .del-x,
+.map-head:hover .del-x,
+.del-x:focus {
     opacity: 1;
+}
+
+/* The map title anchors its own delete cross, floated off to the right
+   so the title stays visually centered. */
+.map-head {
+    position: relative;
+    display: inline-block;
+}
+
+.map-head .del-x {
+    top: 50%;
+    right: -1.2em;
+    transform: translateY(-50%);
+    font-size: 0.6em;
+}
+
+/* A time that isn't a whole number of game frames (17 ms) — almost
+   certainly a typo. Saved anyway, but flagged until it's fixed. */
+.challenges input.off-frame {
+    outline: 1px dashed #fff;
+    outline-offset: -2px;
+}
+
+/* Time-dashboard entry points on time column headers: visitors click
+   the name itself; admins (whose header is the rename input) get a
+   hover-reveal arrow in the top-left corner, mirroring the delete
+   cross on the right. */
+.challenges th .col-link {
+    text-decoration: none;
+}
+
+.challenges th .dash-link {
+    position: absolute;
+    top: 0;
+    left: 1px;
+    text-decoration: none;
+    font-size: 0.85em;
+    line-height: 1;
+    opacity: 0;
+}
+
+.challenges th:hover .dash-link,
+.dash-link:focus {
+    opacity: 1;
+}
+
+/* The time dashboard itself: main table on the left, the side stack
+   (checkpoints, import form, result message) vertically centered next
+   to it. */
+.dash-back {
+    text-decoration: none;
+}
+
+.dash-layout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    margin-top: 16px;
+}
+
+.dash-layout .grid-wrap {
+    margin: 0;
+}
+
+.dash-side {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    max-width: 45vw;
+}
+
+.dash-message {
+    display: inline-block;
+    border: 1px dashed #fff;
+    padding: 4px 12px;
+    margin: 16px 0 0;
+}
+
+/* A flagged room ends its segment — the separator sits under it. */
+.time-dash tr.cp-end th,
+.time-dash tr.cp-end td {
+    border-bottom: 3px double #fff;
+}
+
+/* Rooms that start one of the map's REAL checkpoints keep a dim star,
+   so experiments with the working flags never lose the reference. */
+.cp-real {
+    opacity: 0.5;
+    margin-left: 4px;
+}
+
+/* The checkpoint summary has no sticky .room column, so it draws its
+   own left edge (the main grid gets it from the sticky cells). */
+.cp-table th:first-child,
+.cp-table td:first-child {
+    border-left: 1px solid #fff;
+}
+
+.dash-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.dash-btn {
+    background: #000;
+    color: #fff;
+    border: 1px solid #fff;
+    font: inherit;
+    padding: 4px 10px;
+    cursor: pointer;
+}
+
+.dash-btn:focus {
+    outline: 1px solid #fff;
+    outline-offset: 2px;
+}
+
+/* The import popup, centered in the viewport. */
+#import-dialog {
+    margin: auto;
+    background: #000;
+    color: #fff;
+    border: 1px solid #fff;
+    padding: 16px;
+}
+
+#import-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.75);
+}
+
+.import-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: min(70ch, 85vw);
+}
+
+.import-form textarea {
+    background: #000;
+    color: #fff;
+    border: 1px solid #fff;
+    font: inherit;
+    padding: 6px 8px;
+    resize: vertical;
+}
+
+.import-form button {
+    align-self: center;
+}
+
+.import-form textarea:focus {
+    outline: 1px solid #fff;
+    outline-offset: 2px;
 }
 
 /* Destructive links (delete map/campaign): dimmed, plain. */
@@ -283,4 +460,187 @@ ul {
 .form-error {
     border: 1px dashed #fff;
     padding: 4px 8px;
+}
+
+/* The map title doubles as its rename field. */
+input.map-name {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font: inherit;
+    text-align: center;
+}
+
+input.map-name:focus {
+    outline: 1px solid #fff;
+    outline-offset: 2px;
+}
+
+/* Inline rename input in the sidebar (campaigns). */
+.rename-inline {
+    background: #000;
+    color: #fff;
+    border: 1px solid #fff;
+    font: inherit;
+    padding: 2px 4px;
+}
+
+/* Read-only grid (logged-out visitors): plain text keeps the padding
+   the inputs would have provided. */
+.challenges td.ro,
+.challenges tbody th.room.ro {
+    padding: 4px 8px;
+}
+
+/* The /login page: one centered form, same skin as the other forms. */
+.login-page {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+/* Rendered markdown (static/docs/). The global reset strips default
+   margins and list styles, so the usual document styling comes back
+   explicitly here — scoped to .doc-view only. */
+.doc-view {
+    width: min(70ch, 85vw);
+    max-height: 80vh;
+    overflow-y: auto;
+    margin: 16px auto 0;
+    text-align: left;
+    line-height: 1.5;
+}
+
+.doc-view h1,
+.doc-view h2,
+.doc-view h3,
+.doc-view h4 {
+    margin: 20px 0 8px;
+}
+
+.doc-view h1 {
+    border-bottom: 1px solid #fff;
+    padding-bottom: 4px;
+}
+
+.doc-view p {
+    margin: 8px 0;
+}
+
+.doc-view ul,
+.doc-view ol {
+    margin: 8px 0;
+    padding-left: 28px;
+}
+
+.doc-view ul {
+    list-style: disc;
+}
+
+.doc-view ol {
+    list-style: decimal;
+}
+
+.doc-view code {
+    border: 1px solid #666;
+    padding: 0 4px;
+}
+
+.doc-view pre {
+    border: 1px solid #fff;
+    padding: 8px 12px;
+    margin: 8px 0;
+    overflow-x: auto;
+}
+
+.doc-view pre code {
+    border: none;
+    padding: 0;
+}
+
+.doc-view blockquote {
+    border-left: 3px solid #fff;
+    padding-left: 12px;
+    margin: 8px 0;
+    opacity: 0.8;
+}
+
+.doc-view table {
+    border-collapse: collapse;
+    margin: 8px 0;
+}
+
+.doc-view th,
+.doc-view td {
+    border: 1px solid #fff;
+    padding: 4px 10px;
+}
+
+.doc-view hr {
+    border: none;
+    border-top: 1px solid #fff;
+    margin: 16px 0;
+}
+
+/* Ctrl+K search palette. */
+#search-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    display: none;
+    z-index: 10;
+}
+
+#search-overlay.open {
+    display: block;
+}
+
+#search-box {
+    width: min(480px, 90vw);
+    margin: 20vh auto 0;
+    background: #000;
+    border: 1px solid #fff;
+    padding: 8px;
+}
+
+#search-input {
+    width: 100%;
+    background: #000;
+    color: #fff;
+    border: 1px solid #fff;
+    font: inherit;
+    padding: 6px 8px;
+}
+
+#search-input:focus {
+    outline: 1px solid #fff;
+    outline-offset: 1px;
+}
+
+#search-results {
+    list-style: none;
+    padding: 0;
+    margin-top: 8px;
+    max-height: 40vh;
+    overflow: auto;
+    text-align: left;
+}
+
+#search-results li {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 4px 8px;
+    cursor: pointer;
+}
+
+#search-results li.selected {
+    background: #fff;
+    color: #000;
+}
+
+.search-tag {
+    opacity: 0.6;
 }

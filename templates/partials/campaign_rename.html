@@ -1,0 +1,9 @@
+{# Replaces the "rename campaign" link in its <li>. Saving (change event)
+   re-renders the whole tree, which also removes this input. #}
+<input class="rename-inline" name="name" value="{{ name }}"
+       size="{{ name | length + 2 }}"
+       hx-post="/campaign/{{ id }}/rename"
+       hx-trigger="change"
+       hx-target="#sidebar-tree"
+       hx-swap="outerHTML"
+       autofocus>
