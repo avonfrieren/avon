@@ -1,9 +1,10 @@
-//! The bool dashboard: a per-map view dedicated to one bool challenge,
-//! reached by clicking its column header in the grid. Mirrors the time
-//! dashboard (same checkpoint system), but each row pairs the challenge's
-//! boolean with a hand-entered "diff" integer. The map's difficulty is
-//! the sum of diffs over the room count; each checkpoint has its own the
-//! same way. Everything is entered by hand — no import.
+//! The difficulty dashboard: a per-map view dedicated to one bool
+//! challenge, reached by clicking its column header in the grid. Mirrors
+//! the time dashboard (same shared scaffolding in `super::dashboard`),
+//! but each row pairs the challenge's boolean ("clear") with a
+//! hand-entered "diff" integer. The map's difficulty is the sum of diffs
+//! over the room count; each checkpoint has its own the same way.
+//! Everything is entered by hand — no import.
 
 use axum::{
     extract::{Path, State},
@@ -14,8 +15,11 @@ use serde::Serialize;
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use super::dashboard;
 use super::render;
 use crate::AppState;
+
+const TEMPLATE: &str = "partials/difficulty_dashboard.html";
 
 #[derive(Serialize)]
 struct BoolRow {
@@ -27,7 +31,7 @@ struct BoolRow {
     passed: bool,
     /// The hand-entered difficulty contribution — empty string when
     /// unset (Tera has no null test, and "0" must stay distinct from
-    /// "unset", so this is rendered here rather than in the template).
+    /// "unset", so it is rendered here rather than in the template).
     diff: String,
 }
 
@@ -39,22 +43,25 @@ struct CheckpointRow {
     difficulty: String,
 }
 
-/// The challenge a dashboard belongs to, or None if the id isn't a bool
-/// challenge — the difficulty view only makes sense for pass/fail columns.
-async fn bool_challenge(state: &AppState, challenge_id: i32) -> Option<(i32, String)> {
-    let (map_id, name, kind): (i32, String, String) =
-        sqlx::query_as("SELECT map_id, name, kind FROM challenges WHERE id = $1")
-            .bind(challenge_id)
-            .fetch_optional(&state.db)
-            .await
-            .ok()
-            .flatten()?;
-    (kind == "bool").then_some((map_id, name))
-}
-
 /// sum / count as a two-decimal string; None when there are no rooms.
 fn difficulty(sum: i64, rooms: usize) -> Option<String> {
     (rooms > 0).then(|| format!("{:.2}", sum as f64 / rooms as f64))
+}
+
+/// A challenge's stored diff integers, as room → diff. diff is INTEGER
+/// (i32); reading it straight into i64 would silently fail to decode and
+/// vanish through unwrap_or_default.
+async fn diffs(state: &AppState, challenge_id: i32) -> HashMap<i32, i64> {
+    sqlx::query_as::<_, (i32, i32)>(
+        "SELECT room_id, diff FROM challenge_diffs WHERE challenge_id = $1",
+    )
+    .bind(challenge_id)
+    .fetch_all(&state.db)
+    .await
+    .unwrap_or_default()
+    .into_iter()
+    .map(|(room, diff)| (room, diff as i64))
+    .collect()
 }
 
 /// Builds the dashboard context: per-room rows, the map totals, and the
@@ -65,41 +72,9 @@ async fn dashboard_context(
     map_id: i32,
     challenge_name: &str,
 ) -> tera::Context {
-    let (map_name,): (String,) = sqlx::query_as("SELECT name FROM maps WHERE id = $1")
-        .bind(map_id)
-        .fetch_one(&state.db)
-        .await
-        .unwrap();
-
-    let rooms: Vec<(i32, String, bool, bool)> = sqlx::query_as(
-        "SELECT id, name, checkpoint_end, checkpoint_real
-         FROM rooms WHERE map_id = $1 ORDER BY position, id",
-    )
-    .bind(map_id)
-    .fetch_all(&state.db)
-    .await
-    .unwrap_or_default();
-
-    let values: HashMap<i32, i64> =
-        sqlx::query_as("SELECT room_id, value FROM challenge_values WHERE challenge_id = $1")
-            .bind(challenge_id)
-            .fetch_all(&state.db)
-            .await
-            .unwrap_or_default()
-            .into_iter()
-            .collect();
-
-    // diff is INTEGER (i32); reading it as i64 would silently fail to
-    // decode and vanish into unwrap_or_default.
-    let diffs: HashMap<i32, i64> =
-        sqlx::query_as::<_, (i32, i32)>("SELECT room_id, diff FROM challenge_diffs WHERE challenge_id = $1")
-            .bind(challenge_id)
-            .fetch_all(&state.db)
-            .await
-            .unwrap_or_default()
-            .into_iter()
-            .map(|(room, diff)| (room, diff as i64))
-            .collect();
+    let rooms = dashboard::rooms(state, map_id).await;
+    let values = dashboard::values(state, challenge_id).await;
+    let diffs = diffs(state, challenge_id).await;
 
     let mut rows = Vec::with_capacity(rooms.len());
     let mut passed_count = 0;
@@ -121,44 +96,29 @@ async fn dashboard_context(
         });
     }
 
-    // Per-checkpoint summary. A flagged room ENDS its segment (checking a
-    // room includes it); whatever follows the last flag is the final
-    // group. The table shows up once a flag is set.
-    let mut checkpoints: Vec<CheckpointRow> = Vec::new();
-    if rooms.iter().any(|(_, _, cp, _)| *cp) {
-        type Room = (i32, String, bool, bool);
-        let mut group: Vec<&Room> = Vec::new();
-        let mut groups: Vec<Vec<&Room>> = Vec::new();
-        for room in &rooms {
-            group.push(room);
-            if room.2 {
-                groups.push(std::mem::take(&mut group));
-            }
-        }
-        if !group.is_empty() {
-            groups.push(group);
-        }
-
-        for (i, g) in groups.iter().enumerate() {
+    let checkpoints: Vec<CheckpointRow> = dashboard::checkpoint_groups(&rooms)
+        .iter()
+        .enumerate()
+        .map(|(i, g)| {
             let passed = g
                 .iter()
                 .filter(|(id, ..)| values.get(id).is_some_and(|&v| v != 0))
                 .count();
             let sum: i64 = g.iter().map(|(id, ..)| diffs.get(id).copied().unwrap_or(0)).sum();
-            checkpoints.push(CheckpointRow {
+            CheckpointRow {
                 name: format!("cp {}", i + 1),
-                rooms: format!("{} \u{2192} {}", g.first().unwrap().1, g.last().unwrap().1),
+                rooms: dashboard::group_label(g),
                 passed: format!("{}/{}", passed, g.len()),
                 difficulty: difficulty(sum, g.len()).unwrap_or_else(|| "\u{2014}".to_string()),
-            });
-        }
-    }
+            }
+        })
+        .collect();
 
     let mut ctx = tera::Context::new();
     ctx.insert("challenge_id", &challenge_id);
     ctx.insert("challenge_name", challenge_name);
     ctx.insert("map_id", &map_id);
-    ctx.insert("map_name", &map_name);
+    ctx.insert("map_name", &dashboard::map_name(state, map_id).await);
     ctx.insert("rows", &rows);
     ctx.insert("passed_total", &passed_count);
     ctx.insert("diff_total", &diff_total);
@@ -167,36 +127,30 @@ async fn dashboard_context(
     ctx
 }
 
-/// Re-render helper: the dashboard is always the editable variant when
-/// reached through the write-guarded POST handlers.
+/// Re-render the dashboard as its editable variant (only the
+/// write-guarded POST handlers reach this).
 async fn rerender(state: &AppState, challenge_id: i32, map_id: i32, name: &str) -> Response {
     let mut ctx = dashboard_context(state, challenge_id, map_id, name).await;
     ctx.insert("is_admin", &true);
-    render(state, "partials/difficulty_dashboard.html", &ctx).into_response()
+    render(state, TEMPLATE, &ctx).into_response()
 }
 
-/// GET /bool/:challenge_id — the dashboard pane. htmx gets the bare
-/// fragment; a direct load (refresh, shared link) gets the whole page.
+/// GET /bool/:challenge_id — the dashboard pane.
 pub async fn dashboard(
     State(state): State<Arc<AppState>>,
     Path(challenge_id): Path<i32>,
     jar: CookieJar,
     headers: axum::http::HeaderMap,
 ) -> Response {
-    let Some((map_id, name)) = bool_challenge(&state, challenge_id).await else {
+    let Some((map_id, name)) = dashboard::guard(&state, challenge_id, "bool").await else {
         return Html("not a bool challenge".to_string()).into_response();
     };
     let is_admin = super::auth::is_admin(&state, &jar).await;
 
     let mut ctx = dashboard_context(&state, challenge_id, map_id, &name).await;
     ctx.insert("is_admin", &is_admin);
-    let view = render(&state, "partials/difficulty_dashboard.html", &ctx);
-
-    if super::is_htmx(&headers) {
-        view.into_response()
-    } else {
-        super::full_page(&state, is_admin, &view.0).await.into_response()
-    }
+    let view = render(&state, TEMPLATE, &ctx);
+    dashboard::respond(&state, is_admin, &headers, view).await
 }
 
 #[derive(serde::Deserialize)]
@@ -212,7 +166,7 @@ pub async fn set_value(
     Path((challenge_id, room_id)): Path<(i32, i32)>,
     axum::Form(form): axum::Form<ValueForm>,
 ) -> Response {
-    let Some((map_id, name)) = bool_challenge(&state, challenge_id).await else {
+    let Some((map_id, name)) = dashboard::guard(&state, challenge_id, "bool").await else {
         return Html("not a bool challenge".to_string()).into_response();
     };
 
@@ -252,7 +206,7 @@ pub async fn set_diff(
     Path((challenge_id, room_id)): Path<(i32, i32)>,
     axum::Form(form): axum::Form<DiffForm>,
 ) -> Response {
-    let Some((map_id, name)) = bool_challenge(&state, challenge_id).await else {
+    let Some((map_id, name)) = dashboard::guard(&state, challenge_id, "bool").await else {
         return Html("not a bool challenge".to_string()).into_response();
     };
 
@@ -282,60 +236,38 @@ pub async fn set_diff(
     rerender(&state, challenge_id, map_id, &name).await
 }
 
-/// POST /bool/:challenge_id/checkpoint/:room_id — flag/unflag a room as a
-/// checkpoint end (shared with the time dashboard: checkpoints live on
-/// the map, not the challenge), then re-render.
-pub async fn toggle_checkpoint(
-    State(state): State<Arc<AppState>>,
-    Path((challenge_id, room_id)): Path<(i32, i32)>,
-) -> Response {
-    let Some((map_id, name)) = bool_challenge(&state, challenge_id).await else {
-        return Html("not a bool challenge".to_string()).into_response();
-    };
-
-    sqlx::query("UPDATE rooms SET checkpoint_end = NOT checkpoint_end WHERE id = $1")
-        .bind(room_id)
-        .execute(&state.db)
-        .await
-        .ok();
-
-    rerender(&state, challenge_id, map_id, &name).await
-}
-
-/// POST /bool/:challenge_id/cps/save — freeze the working checkpoints as
-/// the map's real ones.
+/// POST /bool/:challenge_id/cps/save — freeze the working checkpoints.
 pub async fn save_checkpoints(
     State(state): State<Arc<AppState>>,
     Path(challenge_id): Path<i32>,
 ) -> Response {
-    let Some((map_id, name)) = bool_challenge(&state, challenge_id).await else {
+    let Some((map_id, name)) = dashboard::guard(&state, challenge_id, "bool").await else {
         return Html("not a bool challenge".to_string()).into_response();
     };
-
-    sqlx::query("UPDATE rooms SET checkpoint_real = checkpoint_end WHERE map_id = $1")
-        .bind(map_id)
-        .execute(&state.db)
-        .await
-        .ok();
-
+    dashboard::save_checkpoints(&state, map_id).await;
     rerender(&state, challenge_id, map_id, &name).await
 }
 
-/// POST /bool/:challenge_id/cps/reset — restore the working checkpoints
-/// from the map's real ones.
+/// POST /bool/:challenge_id/cps/reset — restore the working checkpoints.
 pub async fn reset_checkpoints(
     State(state): State<Arc<AppState>>,
     Path(challenge_id): Path<i32>,
 ) -> Response {
-    let Some((map_id, name)) = bool_challenge(&state, challenge_id).await else {
+    let Some((map_id, name)) = dashboard::guard(&state, challenge_id, "bool").await else {
         return Html("not a bool challenge".to_string()).into_response();
     };
+    dashboard::reset_checkpoints(&state, map_id).await;
+    rerender(&state, challenge_id, map_id, &name).await
+}
 
-    sqlx::query("UPDATE rooms SET checkpoint_end = checkpoint_real WHERE map_id = $1")
-        .bind(map_id)
-        .execute(&state.db)
-        .await
-        .ok();
-
+/// POST /bool/:challenge_id/checkpoint/:room_id — flag/unflag a room.
+pub async fn toggle_checkpoint(
+    State(state): State<Arc<AppState>>,
+    Path((challenge_id, room_id)): Path<(i32, i32)>,
+) -> Response {
+    let Some((map_id, name)) = dashboard::guard(&state, challenge_id, "bool").await else {
+        return Html("not a bool challenge".to_string()).into_response();
+    };
+    dashboard::toggle_checkpoint(&state, room_id).await;
     rerender(&state, challenge_id, map_id, &name).await
 }
