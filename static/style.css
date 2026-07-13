@@ -296,6 +296,16 @@ ul {
     margin: 16px 0 0;
 }
 
+/* Map difficulty headline, in the side stack under the checkpoints. */
+.dash-difficulty {
+    margin: 0;
+}
+
+.dash-difficulty strong {
+    margin-left: 6px;
+    font-size: 1.3em;
+}
+
 /* A flagged room ends its segment — the separator sits under it. */
 .time-dash tr.cp-end th,
 .time-dash tr.cp-end td {

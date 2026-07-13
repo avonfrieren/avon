@@ -1,0 +1,108 @@
+<h2>
+    <a href="#" class="dash-back" hx-get="/map/{{ map_id }}" hx-target="#content"
+       hx-push-url="true">{{ map_name }}</a> &mdash; {{ challenge_name }}
+</h2>
+
+<div class="dash-layout">
+    <div class="grid-wrap">
+        <table class="challenges time-dash" id="difficulty-dashboard">
+            <thead>
+                <tr>
+                    <th class="room">room</th>
+                    {% if is_admin %}<th title="checkpoint end (room included)">cp</th>{% endif %}
+                    <th>clear</th>
+                    <th>diff</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in rows %}
+                <tr{% if r.checkpoint_end %} class="cp-end"{% endif %}>
+                    <th class="room ro">
+                        {{ r.room_name }}{% if r.checkpoint_real %}<span
+                            class="cp-real" title="real checkpoint">*</span>{% endif %}
+                    </th>
+                    {% if is_admin %}
+                    <td>
+                        <input class="cell-check" type="checkbox"
+                               {% if r.checkpoint_end %}checked{% endif %}
+                               hx-post="/bool/{{ challenge_id }}/checkpoint/{{ r.room_id }}"
+                               hx-target="#content"
+                               hx-swap="innerHTML">
+                    </td>
+                    {% endif %}
+                    <td class="ro">
+                        {% if is_admin %}
+                        <input class="cell-check" type="checkbox" name="value" value="1"
+                               {% if r.passed %}checked{% endif %}
+                               hx-post="/bool/{{ challenge_id }}/value/{{ r.room_id }}"
+                               hx-trigger="change"
+                               hx-target="#content"
+                               hx-swap="innerHTML">
+                        {% elif r.passed %}&check;{% endif %}
+                    </td>
+                    <td class="ro">
+                        {% if is_admin %}
+                        <input class="cell" name="value" value="{{ r.diff }}"
+                               hx-post="/bool/{{ challenge_id }}/diff/{{ r.room_id }}"
+                               hx-trigger="change"
+                               hx-target="#content"
+                               hx-swap="innerHTML">
+                        {% else %}{{ r.diff }}{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th class="room">total</th>
+                    {% if is_admin %}<td></td>{% endif %}
+                    <td>{{ passed_total }}</td>
+                    <td>{{ diff_total }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div class="dash-side">
+        {% if checkpoints %}
+        <table class="challenges cp-table">
+            <thead>
+                <tr>
+                    <th>checkpoint</th>
+                    <th>rooms</th>
+                    <th>passed</th>
+                    <th>difficulty</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cp in checkpoints %}
+                <tr>
+                    <td class="ro">{{ cp.name }}</td>
+                    <td class="ro">{{ cp.rooms }}</td>
+                    <td class="ro">{{ cp.passed }}</td>
+                    <td class="ro">{{ cp.difficulty }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        <p class="dash-difficulty">map difficulty
+            <strong>{% if map_difficulty %}{{ map_difficulty }}{% else %}&mdash;{% endif %}</strong>
+        </p>
+
+        {% if is_admin %}
+        <div class="dash-actions">
+            <button type="button" class="dash-btn"
+                    hx-post="/bool/{{ challenge_id }}/cps/save"
+                    hx-confirm="Overwrite the map's real checkpoints with the current ones?"
+                    hx-target="#content"
+                    hx-swap="innerHTML">save as real cps</button>
+            <button type="button" class="dash-btn"
+                    hx-post="/bool/{{ challenge_id }}/cps/reset"
+                    hx-target="#content"
+                    hx-swap="innerHTML">reset to real cps</button>
+        </div>
+        {% endif %}
+    </div>
+</div>

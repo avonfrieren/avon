@@ -27,10 +27,20 @@
                 <a href="#" class="dash-link" title="time dashboard"
                    hx-get="/time/{{ ch.id }}" hx-target="#content"
                    hx-push-url="true">&nearr;</a>
+                {% elif ch.kind == "bool" %}
+                {# Same idea for the bool difficulty dashboard — same
+                   arrow glyph as time, for consistency. #}
+                <a href="#" class="dash-link" title="difficulty dashboard"
+                   hx-get="/bool/{{ ch.id }}" hx-target="#content"
+                   hx-push-url="true">&nearr;</a>
                 {% endif %}
                 {% elif ch.kind == "time" %}
                 <a href="#" class="col-link" title="time dashboard"
                    hx-get="/time/{{ ch.id }}" hx-target="#content"
+                   hx-push-url="true">{{ ch.name }}</a>
+                {% elif ch.kind == "bool" %}
+                <a href="#" class="col-link" title="difficulty dashboard"
+                   hx-get="/bool/{{ ch.id }}" hx-target="#content"
                    hx-push-url="true">{{ ch.name }}</a>
                 {% else %}
                 {{ ch.name }}
