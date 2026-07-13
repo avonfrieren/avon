@@ -35,7 +35,7 @@ async fn main() {
 
     let state = Arc::new(AppState { db: pool, tera });
 
-    use handlers::{auth, campaigns, docs, grid, maps, sidebar, time};
+    use handlers::{auth, campaigns, difficulty, docs, grid, maps, sidebar, time};
     let app = Router::new()
         .route("/", get(sidebar::index))
         .route("/login", get(auth::login))
@@ -66,6 +66,21 @@ async fn main() {
         .route(
             "/time/:challenge_id/checkpoint/:room_id",
             post(time::toggle_checkpoint),
+        )
+        .route("/bool/:challenge_id", get(difficulty::dashboard))
+        .route(
+            "/bool/:challenge_id/value/:room_id",
+            post(difficulty::set_value),
+        )
+        .route(
+            "/bool/:challenge_id/diff/:room_id",
+            post(difficulty::set_diff),
+        )
+        .route("/bool/:challenge_id/cps/save", post(difficulty::save_checkpoints))
+        .route("/bool/:challenge_id/cps/reset", post(difficulty::reset_checkpoints))
+        .route(
+            "/bool/:challenge_id/checkpoint/:room_id",
+            post(difficulty::toggle_checkpoint),
         )
         .route("/cell/:room_id/:challenge_id", post(grid::update_cell))
         .route("/room/:id", post(grid::rename_room))
