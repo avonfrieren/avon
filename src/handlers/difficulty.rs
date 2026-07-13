@@ -160,7 +160,7 @@ async fn dashboard_context(
     ctx.insert("map_id", &map_id);
     ctx.insert("map_name", &map_name);
     ctx.insert("rows", &rows);
-    ctx.insert("passed_total", &format!("{}/{}", passed_count, rooms.len()));
+    ctx.insert("passed_total", &passed_count);
     ctx.insert("diff_total", &diff_total);
     ctx.insert("map_difficulty", &difficulty(diff_total, rooms.len()));
     ctx.insert("checkpoints", &checkpoints);

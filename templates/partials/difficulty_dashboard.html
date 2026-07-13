@@ -59,17 +59,10 @@
                     <td>{{ passed_total }}</td>
                     <td>{{ diff_total }}</td>
                 </tr>
-                <tr>
-                    <th class="room">difficulty</th>
-                    {% if is_admin %}<td></td>{% endif %}
-                    <td></td>
-                    <td>{% if map_difficulty %}{{ map_difficulty }}{% else %}&mdash;{% endif %}</td>
-                </tr>
             </tfoot>
         </table>
     </div>
 
-    {% if checkpoints or is_admin %}
     <div class="dash-side">
         {% if checkpoints %}
         <table class="challenges cp-table">
@@ -94,6 +87,10 @@
         </table>
         {% endif %}
 
+        <p class="dash-difficulty">map difficulty
+            <strong>{% if map_difficulty %}{{ map_difficulty }}{% else %}&mdash;{% endif %}</strong>
+        </p>
+
         {% if is_admin %}
         <div class="dash-actions">
             <button type="button" class="dash-btn"
@@ -108,5 +105,4 @@
         </div>
         {% endif %}
     </div>
-    {% endif %}
 </div>
