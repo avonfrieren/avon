@@ -1,4 +1,8 @@
 <h2>map difficulty</h2>
+<p class="calc-version">
+    <a href="#" hx-get="/docs/diffs.md" hx-target="#content" hx-push-url="true"
+       title="how it works">calc v{{ calc_version }}</a>
+</p>
 
 {# All calculator state rides in the query string, so every control is a
    GET that re-renders this whole pane. hx-include grabs the form (rooms +

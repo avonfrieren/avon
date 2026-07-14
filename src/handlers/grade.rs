@@ -28,6 +28,12 @@ use crate::AppState;
 const TEMPLATE: &str = "partials/grade.html";
 const DEFAULT_R: f64 = 0.7;
 
+/// The calculator's own version (major.minor), independent of the app
+/// version. Bump it whenever the grading or aggregation behavior
+/// changes, and record what changed in `static/docs/diffs.md` under that
+/// version. Shown on the calculator, linked to that doc.
+const CALC_VERSION: &str = "1.0";
+
 #[derive(Clone, Copy, Debug)]
 pub enum Shade {
     Green,
@@ -178,6 +184,7 @@ pub async fn calculator(
         .join(",");
 
     let mut ctx = tera::Context::new();
+    ctx.insert("calc_version", CALC_VERSION);
     ctx.insert("rooms", &room_views);
     ctx.insert("rooms_csv", &rooms_csv);
     ctx.insert("has_rooms", &!rooms.is_empty());
