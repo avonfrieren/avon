@@ -107,6 +107,11 @@
         </details>
     </li>
     <li>
+        <a href="#" hx-get="/difficulty" hx-target="#content" hx-push-url="true">
+            difficulty
+        </a>
+    </li>
+    <li>
         {% if is_admin %}
         <a href="#" class="del-link" hx-post="/logout">logout</a>
         {% else %}
