@@ -380,8 +380,18 @@ ul {
     gap: 8px;
 }
 
+/* Its own complete borders — it doesn't have the grid's sticky .room
+   cells that would otherwise draw the left/top edges. */
 .calc-rooms {
+    border-collapse: collapse;
     margin: 16px auto 0;
+}
+
+.calc-rooms th,
+.calc-rooms td {
+    border: 1px solid #fff;
+    padding: 4px 12px;
+    text-align: center;
 }
 
 .calc-result {

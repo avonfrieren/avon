@@ -38,16 +38,16 @@
 </form>
 
 {% if has_rooms %}
-<table class="challenges calc-rooms">
+<table class="calc-rooms">
     <thead>
         <tr><th>#</th><th>room grade</th><th></th></tr>
     </thead>
     <tbody>
         {% for room in rooms %}
         <tr>
-            <td class="ro">{{ loop.index }}</td>
-            <td class="ro">{{ room.label }}</td>
-            <td class="ro">
+            <td>{{ loop.index }}</td>
+            <td>{{ room.label }}</td>
+            <td>
                 <a href="#" class="del-link"
                    hx-get="/difficulty" hx-include="#calc-form"
                    hx-vals='{"remove":"{{ loop.index0 }}"}'
