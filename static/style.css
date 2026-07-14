@@ -672,6 +672,12 @@ input.map-name:focus {
 .doc-view table {
     border-collapse: collapse;
     margin: 8px 0;
+    /* Wide tables (the model benchmark) scroll sideways instead of
+       overflowing the doc pane. */
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    overflow-x: auto;
 }
 
 .doc-view th,

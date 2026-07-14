@@ -3,9 +3,9 @@
 Computes a Celeste map's overall difficulty from the difficulty of each
 of its rooms. Reached from the sidebar's **diffs** link.
 
-The page currently shows **three** aggregation models side by side (v1 ·
-average, vI · strict sustain, v2 · peak+sustain) so they can be compared
-on the same rooms while the right model is still being decided.
+The page currently shows **four** aggregation models side by side (v1 ·
+average, vI · ratio², vI2 · abs gap, v2 · peak+sustain) so they can be
+compared on the same rooms while the right model is still being decided.
 
 ## Grading a room
 
@@ -60,10 +60,38 @@ differing only in how the effective count `E` is built:
 - its rank weight carries one extra factor of r (`r^(i+1)` vs `r^i`).
 
 Both make vI stricter than v2: a map only climbs above its peak if it has
-several rooms at *nearly* the peak difficulty. So the three models order
-cleanly — `peak ≤ vI ≤ v2` always, while v1 can dip *below* the peak
-(dilution). vI is the middle ground: monotone and peak-anchored like v2,
-but crediting only genuinely-near-peak difficulty.
+several rooms at *nearly* the peak difficulty. So vI stays
+between the peak and v2 — `peak ≤ vI ≤ v2` always, while v1 can dip
+*below* the peak (dilution). vI is a middle ground: monotone and
+peak-anchored like v2, but crediting only genuinely-near-peak difficulty.
+
+## vI2 — the absolute-gap alternative
+
+vI and v2 measure a room's closeness to the peak as a **ratio**
+(`dᵢ/peak`). vI2 measures it as the **absolute gap** `dᵢ − peak` (in
+encoded units), decayed exponentially: `gap_factor = (1.3^(dᵢ − peak))²`.
+It keeps v2's rank weighting (`r^i`).
+
+The consequence is **scale-independence**: with vI2, a room *N encoded
+units below the peak* always contributes the same, regardless of how hard
+the peak is (each unit ≈ ×0.59, a full tier ≈ ×0.21). The ratio models
+don't: a room one tier under a GM+5 peak (ratio ≈ 0.9) counts far more
+than one tier under an Expert peak (ratio ≈ 0.67).
+
+Concretely, feeding rooms at the *same tier-distances* below very
+different peaks:
+
+- **GM+5 peak, rooms 1–2 tiers below** → vI **+0.74**, vI2 **+0.26** above peak
+- **Expert peak, same tier-distances** → vI **+0.38**, vI2 **+0.26** above peak
+
+vI2's bonus is identical in both (absolute gaps are identical); vI's grows
+with the peak. The flip side: for rooms *exactly at* the peak, vI2 keeps
+v2's full weighting (`r^i`) where vI discounts it (`r^(i+1)`), so vI2 ≈ v2
+on uniform/stacked-peak maps while vI sits lower. vI2 also stays in
+`peak ≤ vI2 ≤ v2`.
+
+In one line: **vI discounts by *relative* distance, vI2 by *absolute*
+tier-distance.**
 
 ## The value vs the label
 
@@ -73,25 +101,30 @@ D is a continuous number (e.g. 9.92), always shown exactly. The **label**
 
 ## Comparing the models — real cases
 
-Same rooms fed to all three (`r = 0.7`, `cap = 2`). Values are the raw
-numbers (Expert Green = 9, GM Green = 12, GM+1 Green = 15; see the
-encoding above).
+Same rooms fed to all four (`r = 0.7`, `cap = 2`). Values are the raw
+numbers (Expert Green = 9, GM Green = 12, GM+1 Green = 15, GM+5 Green =
+27; see the encoding above).
 
-| Scenario (rooms) | v1 | vI | v2 | What it shows |
-| --- | --- | --- | --- | --- |
-| 1 GM Green | 12.0 | 12.0 | 12.0 | One room = its own grade; all agree. |
-| GM Green + 9 Beginner Green | **3.7** | 12.0 | 12.0 | v1 dilutes toward the easy rooms; vI & v2 hold the GM floor (easy rooms count ~0). |
-| GM Green among 9 Expert Green | 9.9 | 12.7 | 13.2 | v1 → Expert; vI barely leaves the peak (Experts squared down); v2 credits them more. |
-| 13-room mix (GM+1 → Expert) | 13.2 | 15.9 | 16.2 | The original example — vI sits just under v2. |
-| 10 Expert Green (uniform) | 9.0 | 10.1 | 10.4 | Uniform: all ≈ Expert, small sustain. |
-| 3 Expert Green | 9.0 | 9.7 | 9.9 | Baseline for the row below. |
-| …+ 5 Beginner Yellow | **6.6** | 9.7 | 10.0 | **Adding easy rooms drops v1 a whole tier** (the flaw); vI & v2 unchanged. |
-| 2 GM Green (vs 1 above) | 12.0 | 12.4 | 12.6 | v1 ignores the 2nd hard room; vI a little, v2 more. |
-| 5 GM+1 Green (sustained peak) | 15.0 | 15.9 | 16.2 | Fully sustained: vI ≈ v2, both above the peak. |
+| Scenario (rooms) | v1 | vI | vI2 | v2 | What it shows |
+| --- | --- | --- | --- | --- | --- |
+| GM Green + 9 Beginner | **3.7** | 12.0 | 12.0 | 12.0 | v1 dilutes to the easy rooms; the others hold the GM floor. |
+| GM Green among 9 Expert | 9.9 | 12.7 | 12.4 | 13.2 | All three sustains stay near the GM peak; vI2 lowest here. |
+| 13-room mix (GM+1 → Expert) | 13.2 | 15.9 | 15.6 | 16.2 | The original example. |
+| …+ 5 Beginner Yellow to 3 Expert | **6.6** | 9.7 | 9.7 | 10.0 | **Adding easy rooms drops v1 a tier**; the sustains ignore them. |
+| 10 Expert (uniform) | 9.0 | 10.1 | **10.4** | 10.4 | Peak-equal rooms: **vI2 = v2** (full weight), vI lower (rank penalty). |
+| 2 GM Green | 12.0 | 12.4 | **12.6** | 12.6 | Same — vI2 tracks v2 on stacked-peak rooms, vI trails. |
+| **GM+5 peak, rooms 1–2 tiers below** | 24.5 | 27.7 | 27.3 | 28.1 | Bonus above peak (27): vI **+0.7**, **vI2 +0.3**, v2 +1.1. |
+| **Expert peak, same tier-distances** | 6.5 | 9.4 | 9.3 | 9.8 | Bonus above peak (9): vI **+0.4** (shrank!), **vI2 +0.3** (same), v2 +0.8. |
+
+The last two rows are the heart of **vI vs vI2**: identical tier-distances
+below the peak, but very different peaks. **vI2 gives the same bonus
+(+0.3) both times** — it only cares about absolute tier-distance — while
+**vI's bonus shrinks with a lower peak** (+0.7 → +0.4), because its ratio
+metric makes near-peak rooms count more when the peak is high.
 
 **In short:**
 
-- All three **agree** on uniform maps and single rooms.
+- All four **agree** on uniform maps and single rooms.
 - They **diverge** when difficulty is uneven:
   - **v1 (average)** rates the map's *typical* difficulty — a mostly-easy
     map reads easy even with a hard spike. Its flaw: adding or removing
@@ -101,12 +134,15 @@ encoding above).
     sustained it is* — at least as hard as the hardest room, more if
     several hard rooms stack. Its flaw: one hard spike makes the whole
     map read hard even if 95% is trivial.
-  - **vI (strict sustain)** is the middle ground: like v2 but only rooms
-    *genuinely* near the peak add to the bonus, so it hugs the peak
-    unless the hard difficulty is tightly clustered.
+  - **vI (ratio²)** and **vI2 (abs gap)** are both middle grounds between
+    the peak and v2, differing only in how a room's closeness to the peak
+    is measured: vI by *relative* ratio (near-peak rooms count more when
+    the peak is high), vI2 by *absolute* tier-distance (scale-independent,
+    and it keeps full weight for peak-equal rooms where vI discounts them).
 
 Neither is "correct" — it's a **choice**: does a hard section *define* a
-map's difficulty, or only its *typical* challenge?
+map's difficulty, or only its *typical* challenge, and is "close to the
+peak" *relative* or *absolute*?
 
 ## Changelog
 
