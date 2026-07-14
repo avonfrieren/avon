@@ -27,12 +27,13 @@ use crate::AppState;
 
 const TEMPLATE: &str = "partials/grade.html";
 const DEFAULT_R: f64 = 0.7;
+const DEFAULT_CAP: f64 = 2.0;
 
 /// The calculator's own version (major.minor), independent of the app
 /// version. Bump it whenever the grading or aggregation behavior
 /// changes, and record what changed in `static/docs/diffs.md` under that
 /// version. Shown on the calculator, linked to that doc.
-const CALC_VERSION: &str = "1.0";
+const CALC_VERSION: &str = "2.0";
 
 #[derive(Clone, Copy, Debug)]
 pub enum Shade {
@@ -87,9 +88,13 @@ pub fn value_to_label(v: f64) -> String {
     format!("{tier} {shade}")
 }
 
-/// Map difficulty: rank-weighted geometric average of the sorted rooms.
+/// v1 — rank-weighted geometric average of the sorted rooms. Kept
+/// alongside v2 for the on-page comparison. Its flaw: because it divides
+/// by the (growing) sum of weights, adding rooms can *lower* D (dilution),
+/// and a lone hard room is pulled below the peak by softer neighbours.
+///
 /// `r` is the per-rank weight decay (0.7 by default).
-pub fn map_difficulty(room_values: &[f64], r: f64) -> f64 {
+pub fn difficulty_v1(room_values: &[f64], r: f64) -> f64 {
     if room_values.is_empty() {
         return 0.0;
     }
@@ -104,6 +109,37 @@ pub fn map_difficulty(room_values: &[f64], r: f64) -> f64 {
         w *= r;
     }
     num / den
+}
+
+/// v2 — peak-anchored with a bounded sustained-difficulty bonus. The map
+/// is at least as hard as its hardest room (the peak); each additional
+/// near-peak room, sorted hardest-first, adds a diminishing rank-weighted
+/// amount to an "effective count" E, and the bonus saturates toward `cap`
+/// as E grows: `D = peak + cap·(1 − rᴱ)`.
+///
+/// So adding a room never lowers the result (monotone), the result never
+/// exceeds `peak + cap`, and a run of near-peak rooms pushes D up toward
+/// that ceiling. Easy rooms fall to the tail with weight ~0.
+///
+/// `r` is the per-rank weight decay (0.7 by default); `cap` is the most
+/// the sustained bonus can add above the peak (2.0 by default).
+pub fn difficulty_v2(room_values: &[f64], r: f64, cap: f64) -> f64 {
+    let peak = room_values.iter().cloned().fold(f64::MIN, f64::max);
+    if room_values.len() <= 1 || peak <= 0.0 {
+        return peak.max(0.0);
+    }
+    let mut sorted: Vec<f64> = room_values.to_vec();
+    sorted.sort_by(|a, b| b.partial_cmp(a).unwrap()); // descending
+    // Effective count of near-peak rooms beyond the hardest, each
+    // rank-weighted (the first extra room counts fully) and scaled by how
+    // close it is to the peak.
+    let mut e = 0.0;
+    let mut w = 1.0;
+    for &d in &sorted[1..] {
+        e += w * (d / peak);
+        w *= r;
+    }
+    peak + cap * (1.0 - r.powf(e))
 }
 
 fn tier_from_base(base: u32) -> Tier {
@@ -129,6 +165,7 @@ pub struct CalcQuery {
     /// Current rooms as a comma-separated list of encoded values.
     rooms: Option<String>,
     r: Option<f64>,
+    cap: Option<f64>,
     action: Option<String>,
     base: Option<u32>,
     shade: Option<u32>,
@@ -167,8 +204,10 @@ pub async fn calculator(
     }
 
     let r = q.r.unwrap_or(DEFAULT_R).clamp(0.01, 0.99);
+    let cap = q.cap.unwrap_or(DEFAULT_CAP).clamp(0.0, 6.0);
     let values: Vec<f64> = rooms.iter().map(|&v| v as f64).collect();
-    let d = map_difficulty(&values, r);
+    let d1 = difficulty_v1(&values, r);
+    let d2 = difficulty_v2(&values, r, cap);
     let peak = values.iter().cloned().fold(f64::MIN, f64::max);
 
     let room_views: Vec<RoomView> = rooms
@@ -189,8 +228,11 @@ pub async fn calculator(
     ctx.insert("rooms_csv", &rooms_csv);
     ctx.insert("has_rooms", &!rooms.is_empty());
     ctx.insert("r", &format!("{r:.2}"));
-    ctx.insert("d_value", &format!("{d:.2}"));
-    ctx.insert("d_label", &value_to_label(d));
+    ctx.insert("cap", &format!("{cap:.1}"));
+    ctx.insert("d1_value", &format!("{d1:.2}"));
+    ctx.insert("d1_label", &value_to_label(d1));
+    ctx.insert("d2_value", &format!("{d2:.2}"));
+    ctx.insert("d2_label", &value_to_label(d2));
     ctx.insert(
         "peak_label",
         &(if rooms.is_empty() {
