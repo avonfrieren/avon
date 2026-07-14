@@ -8,6 +8,7 @@ pub mod campaigns;
 pub mod dashboard;
 pub mod difficulty;
 pub mod docs;
+pub mod grade;
 pub mod grid;
 pub mod maps;
 pub mod sidebar;

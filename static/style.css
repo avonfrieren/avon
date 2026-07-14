@@ -345,6 +345,74 @@ ul {
     outline-offset: 2px;
 }
 
+/* The map-difficulty calculator. */
+.calc-version {
+    margin: 4px 0 0;
+    font-size: 12px;
+    opacity: 0.6;
+}
+
+.calc-form {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    margin-top: 16px;
+}
+
+.calc-add {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.calc-add select {
+    background: #000;
+    color: #fff;
+    border: 1px solid #fff;
+    font: inherit;
+    padding: 4px 8px;
+}
+
+.calc-add select:focus,
+.calc-r input:focus {
+    outline: 1px solid #fff;
+    outline-offset: 2px;
+}
+
+.calc-r {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Its own complete borders — it doesn't have the grid's sticky .room
+   cells that would otherwise draw the left/top edges. */
+.calc-rooms {
+    border-collapse: collapse;
+    margin: 16px auto 0;
+}
+
+.calc-rooms th,
+.calc-rooms td {
+    border: 1px solid #fff;
+    padding: 4px 12px;
+    text-align: center;
+}
+
+.calc-result {
+    margin-top: 16px;
+}
+
+.calc-d {
+    font-size: 1.4em;
+    font-weight: bold;
+}
+
+.calc-peak {
+    opacity: 0.7;
+}
+
 /* The import popup, centered in the viewport. */
 #import-dialog {
     margin: auto;

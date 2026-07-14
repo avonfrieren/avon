@@ -35,12 +35,13 @@ async fn main() {
 
     let state = Arc::new(AppState { db: pool, tera });
 
-    use handlers::{auth, campaigns, difficulty, docs, grid, maps, sidebar, time};
+    use handlers::{auth, campaigns, difficulty, docs, grade, grid, maps, sidebar, time};
     let app = Router::new()
         .route("/", get(sidebar::index))
         .route("/login", get(auth::login))
         .route("/logout", post(auth::logout))
         .route("/imgs/:filename", get(sidebar::image_view))
+        .route("/difficulty", get(grade::calculator))
         .route(
             "/docs/:filename",
             get(docs::doc_view).delete(docs::delete_doc),

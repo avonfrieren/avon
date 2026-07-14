@@ -1,0 +1,71 @@
+<h2>map difficulty</h2>
+<p class="calc-version">
+    <a href="#" hx-get="/docs/diffs.md" hx-target="#content" hx-push-url="true"
+       title="how it works">calc v{{ calc_version }}</a>
+</p>
+
+{# All calculator state rides in the query string, so every control is a
+   GET that re-renders this whole pane. hx-include grabs the form (rooms +
+   r + the add selects); hx-vals carries the intent (add / remove). #}
+<form id="calc-form" class="calc-form" onsubmit="return false;">
+    <input type="hidden" name="rooms" value="{{ rooms_csv }}">
+    <div class="calc-add">
+        <select name="base">
+            <option value="0">Beginner</option>
+            <option value="1">Intermediate</option>
+            <option value="2">Advanced</option>
+            <option value="3" selected>Expert</option>
+            <option value="4">GM</option>
+            <option value="5">GM+1</option>
+            <option value="6">GM+2</option>
+            <option value="7">GM+3</option>
+            <option value="8">GM+4</option>
+            <option value="9">GM+5</option>
+        </select>
+        <select name="shade">
+            <option value="0">Green</option>
+            <option value="1">Yellow</option>
+            <option value="2">Red</option>
+        </select>
+        <button type="button" class="dash-btn"
+                hx-get="/difficulty" hx-include="#calc-form"
+                hx-vals='{"action":"add"}'
+                hx-target="#content" hx-swap="innerHTML">add room</button>
+    </div>
+    <label class="calc-r">
+        weight decay r = {{ r }}
+        <input type="range" name="r" min="0.01" max="0.99" step="0.01" value="{{ r }}"
+               hx-get="/difficulty" hx-include="#calc-form"
+               hx-trigger="input changed delay:150ms"
+               hx-target="#content" hx-swap="innerHTML">
+    </label>
+</form>
+
+{% if has_rooms %}
+<table class="calc-rooms">
+    <thead>
+        <tr><th>#</th><th>room grade</th><th></th></tr>
+    </thead>
+    <tbody>
+        {% for room in rooms %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ room.label }}</td>
+            <td>
+                <a href="#" class="del-link"
+                   hx-get="/difficulty" hx-include="#calc-form"
+                   hx-vals='{"remove":"{{ loop.index0 }}"}'
+                   hx-target="#content" hx-swap="innerHTML">&times;</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<p class="calc-result">
+    <span class="calc-d">{{ d_value }} &mdash; {{ d_label }}</span><br>
+    <span class="calc-peak">peak room: {{ peak_label }}</span>
+</p>
+{% else %}
+<p class="hint">add rooms to compute the map difficulty.</p>
+{% endif %}
