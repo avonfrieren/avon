@@ -55,6 +55,39 @@ D is a continuous number (e.g. 9.92), always shown exactly. The **label**
 (e.g. "Expert Yellow") is that value mapped to the nearest discrete grade
 — this rounding is display-only and never affects the computed value.
 
+## Comparing the two models — real cases
+
+Same rooms fed to both models (`r = 0.7`, `cap = 2`). Grades shown as
+`label · value`.
+
+| Scenario (rooms) | v1 · average | v2 · peak+sustain | What it shows |
+| --- | --- | --- | --- |
+| 1 GM Green | GM Green · 12.0 | GM Green · 12.0 | A one-room map is that room — both agree. |
+| GM Green + 9 Beginner Green | Intermediate Yellow · 3.7 | GM Green · 12.0 | The core split: v1 reads the map's *easy character*, v2 the *hard floor you must clear*. |
+| GM Green among 9 Expert Green | Expert Yellow · 9.9 | GM Yellow · 13.2 | v1 dilutes the spike toward the Experts; v2 keeps it near GM. |
+| 13-room mix (GM+1 → Expert) | GM Yellow · 13.2 | GM+1 Yellow · 16.2 | The original example. |
+| 10 Expert Green (uniform) | Expert Green · 9.0 | Expert Yellow · 10.4 | Uniform map: both ≈ Expert, v2 a touch higher for length. |
+| 3 Expert Green | Expert Green · 9.0 | Expert Yellow · 9.9 | Baseline for the pair below. |
+| …+ 5 Beginner Yellow | **Advanced Yellow · 6.6** | Expert Yellow · 10.0 | **Adding easy rooms drops v1 a whole tier** (the flaw); v2 is unchanged. |
+| 1 GM Green | GM Green · 12.0 | GM Green · 12.0 | Baseline for the pair below. |
+| 2 GM Green | GM Green · 12.0 | GM Yellow · 12.6 | v1 ignores the 2nd hard room; v2 rewards the sustain. |
+
+**In short:**
+
+- They **agree** on uniform maps and single rooms.
+- They **diverge** when difficulty is uneven:
+  - **v1 (average)** rates the map's *typical* difficulty — a mostly-easy
+    map reads easy even with a hard spike. Its flaw: adding or removing
+    easy rooms shifts the rating (dilution), so *adding easy content
+    lowers the difficulty*, which feels wrong.
+  - **v2 (peak+sustain)** rates *the floor you must clear, plus how
+    sustained it is* — a map is at least as hard as its hardest room,
+    more if several hard rooms stack. Its flaw: a single hard spike makes
+    the whole map read hard even if 95% of it is trivial.
+
+Neither is "correct" — it's a **choice**: does a hard section *define* a
+map's difficulty, or only its *typical* challenge?
+
 ## Changelog
 
 Each entry is the calculator version (`major.minor`) in which the
