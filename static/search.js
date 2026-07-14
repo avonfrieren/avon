@@ -38,6 +38,10 @@
         document.querySelectorAll('.sidebar a[hx-get^="/imgs/"]').forEach(function (a) {
             items.push({ type: 'img', name: a.textContent.trim(), el: a });
         });
+        // Standalone tools (the diffs calculator, ...).
+        document.querySelectorAll('.sidebar a[hx-get="/difficulty"]').forEach(function (a) {
+            items.push({ type: 'tool', name: a.textContent.trim(), el: a });
+        });
     }
 
     function render() {
