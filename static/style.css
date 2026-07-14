@@ -404,12 +404,36 @@ ul {
     margin-top: 16px;
 }
 
+.calc-line {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 12px;
+    margin: 4px 0;
+}
+
+.calc-tag {
+    font-size: 12px;
+    opacity: 0.6;
+    width: 17ch;
+    text-align: right;
+    white-space: nowrap;
+}
+
 .calc-d {
     font-size: 1.4em;
     font-weight: bold;
+    width: 22ch;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.calc-note {
+    opacity: 0.5;
 }
 
 .calc-peak {
+    margin-top: 8px;
     opacity: 0.7;
 }
 

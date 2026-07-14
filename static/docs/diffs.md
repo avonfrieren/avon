@@ -3,6 +3,10 @@
 Computes a Celeste map's overall difficulty from the difficulty of each
 of its rooms. Reached from the sidebar's **diffs** link.
 
+The page currently shows **both** aggregation models side by side (v1 ·
+average and v2 · peak+sustain) so they can be compared on the same rooms
+while the right model is still being decided.
+
 ## Grading a room
 
 Each room is graded on an open-ended **tier** scale, each tier split into

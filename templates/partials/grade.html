@@ -40,7 +40,7 @@
                hx-target="#content" hx-swap="innerHTML">
     </label>
     <label class="calc-r">
-        sustain cap = {{ cap }}
+        sustain cap = {{ cap }} <span class="calc-note">(v2 only)</span>
         <input type="range" name="cap" min="0" max="6" step="0.5" value="{{ cap }}"
                hx-get="/difficulty" hx-include="#calc-form"
                hx-trigger="input changed delay:150ms"
@@ -69,10 +69,17 @@
     </tbody>
 </table>
 
-<p class="calc-result">
-    <span class="calc-d">{{ d_value }} &mdash; {{ d_label }}</span><br>
-    <span class="calc-peak">peak room: {{ peak_label }}</span>
-</p>
+<div class="calc-result">
+    <p class="calc-line">
+        <span class="calc-tag">v1 · average</span>
+        <span class="calc-d">{{ d1_value }} &mdash; {{ d1_label }}</span>
+    </p>
+    <p class="calc-line">
+        <span class="calc-tag">v2 · peak+sustain</span>
+        <span class="calc-d">{{ d2_value }} &mdash; {{ d2_label }}</span>
+    </p>
+    <p class="calc-peak">peak room: {{ peak_label }}</p>
+</div>
 {% else %}
 <p class="hint">add rooms to compute the map difficulty.</p>
 {% endif %}
