@@ -39,6 +39,13 @@
                hx-trigger="input changed delay:150ms"
                hx-target="#content" hx-swap="innerHTML">
     </label>
+    <label class="calc-r">
+        sustain cap = {{ cap }}
+        <input type="range" name="cap" min="0" max="6" step="0.5" value="{{ cap }}"
+               hx-get="/difficulty" hx-include="#calc-form"
+               hx-trigger="input changed delay:150ms"
+               hx-target="#content" hx-swap="innerHTML">
+    </label>
 </form>
 
 {% if has_rooms %}

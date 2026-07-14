@@ -18,23 +18,32 @@ Green = 9, GM Green = 12, GM+1 Green = 15.
 
 ## Map difficulty
 
-The room values are sorted hardest-first, then averaged with a weight
-that decays geometrically by rank:
+The map is anchored at its **peak** (its hardest room), then raised by a
+bounded **sustained-difficulty** bonus:
 
-`D = Σ (rⁱ · d_sorted_i) / Σ rⁱ`, i from 0, with `r ∈ ]0,1[`
-(default 0.7).
+`D = peak + cap · (1 − rᴱ)`
+
+where `E` is an "effective count" of the near-peak rooms: the rooms
+sorted hardest-first (beyond the peak) each add `rⁱ · (dᵢ / peak)` to E,
+i.e. a rank-weighted amount scaled by how close the room is to the peak.
 
 Properties:
 
-- Easy rooms land at the tail with weight ~0 — no dilution, and removing
-  easy rooms barely changes D.
-- A lone hard room is pulled down by its softer neighbours (one GM among
-  Experts ⇒ map ≈ Expert, not GM).
-- Several hard rooms grouped push D toward the peak ("sustained
-  difficulty").
+- **Monotone**: adding a room never lowers D (E only grows). A map is
+  always at least as hard as its hardest room.
+- **Bounded**: D never exceeds `peak + cap`, so it stays on the tier
+  scale — length alone can't inflate an easy map.
+- **Sustained difficulty**: a run of near-peak rooms pushes E up and D
+  toward the `peak + cap` ceiling; a lone hard room among easy ones stays
+  near the peak.
+- Easy rooms fall to the tail with weight ~0 — they contribute nothing,
+  and removing them barely changes D.
 
-`r` is the only knob: → 0 = max (the single hardest room), → 1 = plain
-average, sweet spot 0.6–0.75, to calibrate on consensus maps.
+Two knobs, to calibrate on consensus maps:
+
+- `r ∈ ]0,1[` (default 0.7) — how fast a room's rank weight decays.
+- `cap` (default 2.0) — the most the sustained bonus can add above the
+  peak.
 
 ## The value vs the label
 
@@ -46,6 +55,15 @@ D is a continuous number (e.g. 9.92), always shown exactly. The **label**
 
 Each entry is the calculator version (`major.minor`) in which the
 behavior was introduced or changed.
+
+### 2.0
+
+- Aggregation changed from a rank-weighted **average** to a
+  **peak-anchored** model with a bounded sustained bonus
+  (`D = peak + cap·(1 − rᴱ)`). Fixes the average's flaw where adding
+  rooms could *lower* a map's difficulty; the result is now monotone and
+  a map is always at least as hard as its hardest room. Adds the `cap`
+  knob (default 2.0).
 
 ### 1.0
 
