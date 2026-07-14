@@ -3,9 +3,9 @@
 Computes a Celeste map's overall difficulty from the difficulty of each
 of its rooms. Reached from the sidebar's **diffs** link.
 
-The page currently shows **both** aggregation models side by side (v1 ·
-average and v2 · peak+sustain) so they can be compared on the same rooms
-while the right model is still being decided.
+The page currently shows **three** aggregation models side by side (v1 ·
+average, vI · strict sustain, v2 · peak+sustain) so they can be compared
+on the same rooms while the right model is still being decided.
 
 ## Grading a room
 
@@ -49,41 +49,61 @@ Two knobs, to calibrate on consensus maps:
 - `cap` (default 2.0) — the most the sustained bonus can add above the
   peak.
 
+## vI — the strict-sustain alternative
+
+A community-proposed variant of v2 (same `D = peak + cap·(1 − rᴱ)` shape),
+differing only in how the effective count `E` is built:
+
+- each non-peak room is scaled by `(dᵢ/peak)²` instead of `dᵢ/peak` —
+  **squared**, so rooms that aren't *very* close to the peak are heavily
+  discounted;
+- its rank weight carries one extra factor of r (`r^(i+1)` vs `r^i`).
+
+Both make vI stricter than v2: a map only climbs above its peak if it has
+several rooms at *nearly* the peak difficulty. So the three models order
+cleanly — `peak ≤ vI ≤ v2` always, while v1 can dip *below* the peak
+(dilution). vI is the middle ground: monotone and peak-anchored like v2,
+but crediting only genuinely-near-peak difficulty.
+
 ## The value vs the label
 
 D is a continuous number (e.g. 9.92), always shown exactly. The **label**
 (e.g. "Expert Yellow") is that value mapped to the nearest discrete grade
 — this rounding is display-only and never affects the computed value.
 
-## Comparing the two models — real cases
+## Comparing the models — real cases
 
-Same rooms fed to both models (`r = 0.7`, `cap = 2`). Grades shown as
-`label · value`.
+Same rooms fed to all three (`r = 0.7`, `cap = 2`). Values are the raw
+numbers (Expert Green = 9, GM Green = 12, GM+1 Green = 15; see the
+encoding above).
 
-| Scenario (rooms) | v1 · average | v2 · peak+sustain | What it shows |
-| --- | --- | --- | --- |
-| 1 GM Green | GM Green · 12.0 | GM Green · 12.0 | A one-room map is that room — both agree. |
-| GM Green + 9 Beginner Green | Intermediate Yellow · 3.7 | GM Green · 12.0 | The core split: v1 reads the map's *easy character*, v2 the *hard floor you must clear*. |
-| GM Green among 9 Expert Green | Expert Yellow · 9.9 | GM Yellow · 13.2 | v1 dilutes the spike toward the Experts; v2 keeps it near GM. |
-| 13-room mix (GM+1 → Expert) | GM Yellow · 13.2 | GM+1 Yellow · 16.2 | The original example. |
-| 10 Expert Green (uniform) | Expert Green · 9.0 | Expert Yellow · 10.4 | Uniform map: both ≈ Expert, v2 a touch higher for length. |
-| 3 Expert Green | Expert Green · 9.0 | Expert Yellow · 9.9 | Baseline for the pair below. |
-| …+ 5 Beginner Yellow | **Advanced Yellow · 6.6** | Expert Yellow · 10.0 | **Adding easy rooms drops v1 a whole tier** (the flaw); v2 is unchanged. |
-| 1 GM Green | GM Green · 12.0 | GM Green · 12.0 | Baseline for the pair below. |
-| 2 GM Green | GM Green · 12.0 | GM Yellow · 12.6 | v1 ignores the 2nd hard room; v2 rewards the sustain. |
+| Scenario (rooms) | v1 | vI | v2 | What it shows |
+| --- | --- | --- | --- | --- |
+| 1 GM Green | 12.0 | 12.0 | 12.0 | One room = its own grade; all agree. |
+| GM Green + 9 Beginner Green | **3.7** | 12.0 | 12.0 | v1 dilutes toward the easy rooms; vI & v2 hold the GM floor (easy rooms count ~0). |
+| GM Green among 9 Expert Green | 9.9 | 12.7 | 13.2 | v1 → Expert; vI barely leaves the peak (Experts squared down); v2 credits them more. |
+| 13-room mix (GM+1 → Expert) | 13.2 | 15.9 | 16.2 | The original example — vI sits just under v2. |
+| 10 Expert Green (uniform) | 9.0 | 10.1 | 10.4 | Uniform: all ≈ Expert, small sustain. |
+| 3 Expert Green | 9.0 | 9.7 | 9.9 | Baseline for the row below. |
+| …+ 5 Beginner Yellow | **6.6** | 9.7 | 10.0 | **Adding easy rooms drops v1 a whole tier** (the flaw); vI & v2 unchanged. |
+| 2 GM Green (vs 1 above) | 12.0 | 12.4 | 12.6 | v1 ignores the 2nd hard room; vI a little, v2 more. |
+| 5 GM+1 Green (sustained peak) | 15.0 | 15.9 | 16.2 | Fully sustained: vI ≈ v2, both above the peak. |
 
 **In short:**
 
-- They **agree** on uniform maps and single rooms.
+- All three **agree** on uniform maps and single rooms.
 - They **diverge** when difficulty is uneven:
   - **v1 (average)** rates the map's *typical* difficulty — a mostly-easy
     map reads easy even with a hard spike. Its flaw: adding or removing
     easy rooms shifts the rating (dilution), so *adding easy content
     lowers the difficulty*, which feels wrong.
   - **v2 (peak+sustain)** rates *the floor you must clear, plus how
-    sustained it is* — a map is at least as hard as its hardest room,
-    more if several hard rooms stack. Its flaw: a single hard spike makes
-    the whole map read hard even if 95% of it is trivial.
+    sustained it is* — at least as hard as the hardest room, more if
+    several hard rooms stack. Its flaw: one hard spike makes the whole
+    map read hard even if 95% is trivial.
+  - **vI (strict sustain)** is the middle ground: like v2 but only rooms
+    *genuinely* near the peak add to the bonus, so it hugs the peak
+    unless the hard difficulty is tightly clustered.
 
 Neither is "correct" — it's a **choice**: does a hard section *define* a
 map's difficulty, or only its *typical* challenge?

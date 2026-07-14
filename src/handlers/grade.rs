@@ -142,6 +142,33 @@ pub fn difficulty_v2(room_values: &[f64], r: f64, cap: f64) -> f64 {
     peak + cap * (1.0 - r.powf(e))
 }
 
+/// vI — a stricter variant of v2 proposed by a community member. Same
+/// `peak + cap·(1 − rᴱ)` shape, but the effective count E is more
+/// selective in two ways: each non-peak room's contribution is squared
+/// by its closeness to the peak — `(dᵢ/peak)²` instead of `dᵢ/peak` — so
+/// moderately-easier rooms are heavily discounted, and its rank weight
+/// carries one extra factor of r (`r^(i+1)` vs `r^i`). Both push the
+/// result closer to the pure peak, so `peak ≤ vI ≤ v2` always: only
+/// rooms *genuinely* near the peak earn a sustained bonus.
+pub fn difficulty_vi(room_values: &[f64], r: f64, cap: f64) -> f64 {
+    let peak = room_values.iter().cloned().fold(f64::MIN, f64::max);
+    if room_values.len() <= 1 || peak <= 0.0 {
+        return peak.max(0.0);
+    }
+    // Every room except one instance of the peak, sorted hardest-first.
+    let mut rest: Vec<f64> = room_values.to_vec();
+    let peak_idx = rest.iter().position(|&v| v == peak).unwrap();
+    rest.remove(peak_idx);
+    rest.sort_by(|a, b| b.partial_cmp(a).unwrap()); // descending
+    let mut e = 0.0;
+    for (i, &d) in rest.iter().enumerate() {
+        let rank_weight = r.powi((i + 1) as i32);
+        let gap_factor = (d / peak).powi(2);
+        e += rank_weight * gap_factor;
+    }
+    peak + cap * (1.0 - r.powf(e))
+}
+
 fn tier_from_base(base: u32) -> Tier {
     match base {
         0 => Tier::Beginner,
@@ -208,6 +235,7 @@ pub async fn calculator(
     let values: Vec<f64> = rooms.iter().map(|&v| v as f64).collect();
     let d1 = difficulty_v1(&values, r);
     let d2 = difficulty_v2(&values, r, cap);
+    let di = difficulty_vi(&values, r, cap);
     let peak = values.iter().cloned().fold(f64::MIN, f64::max);
 
     let room_views: Vec<RoomView> = rooms
@@ -233,6 +261,8 @@ pub async fn calculator(
     ctx.insert("d1_label", &value_to_label(d1));
     ctx.insert("d2_value", &format!("{d2:.2}"));
     ctx.insert("d2_label", &value_to_label(d2));
+    ctx.insert("di_value", &format!("{di:.2}"));
+    ctx.insert("di_label", &value_to_label(di));
     ctx.insert(
         "peak_label",
         &(if rooms.is_empty() {
