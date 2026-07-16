@@ -39,7 +39,7 @@ Trackmania 2020 GPS style mod in which you can :
 ##### 2.2 Video
 * Play / implement a video in Celeste (doable ?)
 
-# Theo score points (TSP)
+# 2. Theo score points (TSP)
 Theo gameplay is cool, but most of the time you can throw him
 far away and get him later, or entirely left him behind in
 some rooms, it should be more fun to play and to watch to "force"
