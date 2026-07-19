@@ -1,4 +1,4 @@
-# Speedrun Tool Additions (srta) [OLD TODO]
+# Speedrun Tool Additions (srta) [DONE WITH CHANGES]
 Fork or new Speedrun Tool mod in which you can :
 
 ## Practice sheet implementation
@@ -82,8 +82,7 @@ and lose/need to redo it for a video, should not be applicable for hist/gbnet of
 because it's saving the input's in order to replay it, it's not a proof you didn't
 just TAS it yourself. 
 ## Why ?
-I had this
-idea while seeing for a 1k time now the Motion Smoothing mod and think : "What if
+I had this idea while seeing for a 1k time now the Motion Smoothing mod and think : "What if
 I can do my grind normally without accomodating myself to a higher frame rate because
 I can't, the rest of my play can't have that like vanilla speedrun's, and just replay
 it later like a TAS file with Motion Smoothing ?".
@@ -91,3 +90,15 @@ it later like a TAS file with Motion Smoothing ?".
 * Write and save input on a TAS file in real time
 * Record a video ingame by playing the TAS file directly ? Would require CelesteTAS,
 maybe not necessary to add a dependency when you can just record your screen normally
+
+# Bufferless (b) [TODO]
+Simple mod to erase the buffer mechanic from the game entirely
+## Why ?
+I want to see what happend if you do, how it feels to play without it, and if my concern
+about buffer/buffering inputs on my gameplay habits and way to play is reel or not, and if
+not if I could use that to improve in some way because of the strict requiring precision of such
+a removal.
+## How ?
+* Alternate the game core input system ? Need more research
+* Change the input data from keyboard before they reach the game ? Need more research
+I don't know how it works right now so this is pretty blind
