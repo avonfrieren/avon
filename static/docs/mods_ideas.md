@@ -56,7 +56,7 @@ you farm points, need further thinking
 It should be possible to calculate it from Madeline and Theo's
 position at any time
 
-# Deathless room randomizer [TODO]
+# Deathless room randomizer (drr) [TODO]
 The mod have to be simple, efficient, and serve one and only purpose
 Every bonus features like other stats that are not needed for the core of the
 mod should be done later or even not done at all.
@@ -75,3 +75,19 @@ with the statistics stored in mind tu put more of the rooms you struggled with
 ## On what ?
 A single map you've chosen for simplicity, since the goal of this mod is to train
 yourself on a specific map for deathless purpose.
+
+# Real time input recorder (rtir) [TODO]
+Simple mod to save you from not forgeting to record or stream your grind
+and lose/need to redo it for a video, should not be applicable for hist/gbnet ofc
+because it's saving the input's in order to replay it, it's not a proof you didn't
+just TAS it yourself. 
+## Why ?
+I had this
+idea while seeing for a 1k time now the Motion Smoothing mod and think : "What if
+I can do my grind normally without accomodating myself to a higher frame rate because
+I can't, the rest of my play can't have that like vanilla speedrun's, and just replay
+it later like a TAS file with Motion Smoothing ?".
+## How ?
+* Write and save input on a TAS file in real time
+* Record a video ingame by playing the TAS file directly ? Would require CelesteTAS,
+maybe not necessary to add a dependency when you can just record your screen normally
