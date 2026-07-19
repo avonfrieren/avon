@@ -1,4 +1,4 @@
-# Speedrun Tool's Additions [OLD TODO]
+# Speedrun Tool Additions (srta) [OLD TODO]
 Fork or new Speedrun Tool mod in which you can :
 
 ## Practice sheet implementation
@@ -39,7 +39,7 @@ Trackmania 2020 GPS style mod in which you can :
 ## Video
 * Play / implement a video in Celeste (doable ?)
 
-# Theo score points (TSP) [DONE WITH CHANGES]
+# Theo score points (tsp) [DONE WITH CHANGES]
 Theo gameplay is cool, but most of the time you can throw him
 far away and get him later, or entirely left him behind in
 some rooms, it should be more fun to play and to watch to "force"
