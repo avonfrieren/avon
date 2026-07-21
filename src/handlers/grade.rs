@@ -33,7 +33,7 @@ const DEFAULT_CAP: f64 = 2.0;
 /// version. Bump it whenever the grading or aggregation behavior
 /// changes, and record what changed in `static/docs/diffs.md` under that
 /// version. Shown on the calculator, linked to that doc.
-const CALC_VERSION: &str = "2.0";
+const CALC_VERSION: &str = "3.0";
 
 #[derive(Clone, Copy, Debug)]
 pub enum Shade {
@@ -142,6 +142,41 @@ pub fn difficulty_v2(room_values: &[f64], r: f64, cap: f64) -> f64 {
     peak + cap * (1.0 - r.powf(e))
 }
 
+/// v3 — designed by **Ildyia**, refining v2 with a single, elegant
+/// change. v2 measures a room's closeness to the peak as a *ratio*
+/// (`dᵢ/peak`); Ildyia's insight is that on a tier scale, closeness is
+/// better expressed as an *absolute* tier-distance. So v3 replaces the
+/// gap factor with an exponential decay of the raw gap:
+/// `gap_factor = (1.3^(dᵢ − peak))²`.
+///
+/// The payoff is **scale-independence**: a room N encoded units below the
+/// peak always contributes the same, whatever the peak's height (each unit
+/// ≈ ×0.59, a full tier ≈ ×0.21). The ratio model doesn't — it inflates
+/// near-peak rooms under a high peak (0.9× of GM+5 counts a lot). v3 keeps
+/// all of v2's good properties (monotone, `peak ≤ v3 ≤ v2`) and its rank
+/// weighting (`r^i`); it only makes "near the peak" mean the same thing at
+/// every difficulty.
+pub fn difficulty_v3(room_values: &[f64], r: f64, cap: f64) -> f64 {
+    let peak = room_values.iter().cloned().fold(f64::MIN, f64::max);
+    if room_values.len() <= 1 || peak <= 0.0 {
+        return peak.max(0.0);
+    }
+    let mut sorted: Vec<f64> = room_values.to_vec();
+    sorted.sort_by(|a, b| b.partial_cmp(a).unwrap()); // descending
+    // Absolute-gap decay: base 1.3 keeps weight on rooms a shade or two
+    // below the peak while annihilating far-below ones (Expert under a GM
+    // peak), independent of the peak's magnitude.
+    const SCALE_BASE: f64 = 1.3;
+    let mut e = 0.0;
+    let mut w = 1.0;
+    for &d in &sorted[1..] {
+        let gap_factor = SCALE_BASE.powf(d - peak).powi(2);
+        e += w * gap_factor;
+        w *= r;
+    }
+    peak + cap * (1.0 - r.powf(e))
+}
+
 fn tier_from_base(base: u32) -> Tier {
     match base {
         0 => Tier::Beginner,
@@ -208,6 +243,7 @@ pub async fn calculator(
     let values: Vec<f64> = rooms.iter().map(|&v| v as f64).collect();
     let d1 = difficulty_v1(&values, r);
     let d2 = difficulty_v2(&values, r, cap);
+    let d3 = difficulty_v3(&values, r, cap);
     let peak = values.iter().cloned().fold(f64::MIN, f64::max);
 
     let room_views: Vec<RoomView> = rooms
@@ -233,6 +269,8 @@ pub async fn calculator(
     ctx.insert("d1_label", &value_to_label(d1));
     ctx.insert("d2_value", &format!("{d2:.2}"));
     ctx.insert("d2_label", &value_to_label(d2));
+    ctx.insert("d3_value", &format!("{d3:.2}"));
+    ctx.insert("d3_label", &value_to_label(d3));
     ctx.insert(
         "peak_label",
         &(if rooms.is_empty() {
