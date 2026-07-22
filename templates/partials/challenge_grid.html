@@ -51,6 +51,7 @@
     </thead>
     <tbody>
         {% for row in grid_rows %}
+        {% set row_idx = loop.index0 %}
         <tr>
             <th class="room{% if not is_admin %} ro{% endif %}">
                 {% if is_admin %}
@@ -70,6 +71,7 @@
                 {# An unchecked box sends no field at all — the handler
                    reads that as "clear the cell". #}
                 <input class="cell-check" type="checkbox" name="value" value="1"
+                       data-row="{{ row_idx }}" data-col="{{ loop.index0 }}"
                        {% if cell.value and cell.value != "0" %}checked{% endif %}
                        hx-post="/cell/{{ row.room_id }}/{{ cell.challenge_id }}"
                        hx-trigger="change"
@@ -79,6 +81,7 @@
                 {% else %}
                 {% if is_admin %}
                 <input class="cell{% if cell.off_frame %} off-frame{% endif %}" name="value"
+                       data-row="{{ row_idx }}" data-col="{{ loop.index0 }}"
                        value="{% if cell.value %}{{ cell.value }}{% endif %}"
                        {% if cell.off_frame %}title="not a multiple of 0.017 (one game frame)"{% endif %}
                        hx-post="/cell/{{ row.room_id }}/{{ cell.challenge_id }}"
