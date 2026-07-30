@@ -1,10 +1,12 @@
 # Todos clear
 ## [The 2000s American House Crisis](https://www.hardclears.com/maps/ac-the-2000s-american-housing-crisis)
-> Input dense, 1.3 star
+> Input dense, 1.3 stars
 ## [Glass Ocean](https://gamebanana.com/mods/601159)
 > Input dense, ~GM
 ## [S.B.W.W](https://gamebanana.com/mods/424290)
 > Input dense, ~GM
+## [Overcharge](https://gamebanana.com/mods/598049)
+> Input dense, 3.33 stars high sustained
 
 # Todos mapping
 ## 6arb
