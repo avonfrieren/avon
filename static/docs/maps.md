@@ -2,7 +2,6 @@
 ## [The 2000s American House Crisis](https://www.hardclears.com/maps/ac-the-2000s-american-housing-crisis)
 > Input dense, 1.3 star
 ## [Glass Ocean](https://gamebanana.com/mods/601159)
-> Neon White inspired map
 > Input dense, ~GM
 ## [S.B.W.W](https://gamebanana.com/mods/424290)
 > Input dense, ~GM
