@@ -4,6 +4,8 @@
 ## [Glass Ocean](https://gamebanana.com/mods/601159)
 > Neon White inspired map
 > Input dense, ~GM
+## [S.B.W.W](https://gamebanana.com/mods/424290)
+> Input dense, ~GM
 
 # Todos mapping
 ## 6arb
