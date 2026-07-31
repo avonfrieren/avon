@@ -9,6 +9,8 @@
 > Input dense, 3.33 stars high sustained
 ## [Illusion city](https://gamebanana.com/mods/566229)
 > Flipside Cliffside gameplay, GM yellow
+## [Hypersonic](https://gamebanana.com/mods/603441)
+> Input density, 1^ stars
 
 # Todos mapping
 ## 6arb
