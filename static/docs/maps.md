@@ -7,6 +7,8 @@
 > Input dense, ~GM
 ## [Overcharge](https://gamebanana.com/mods/598049)
 > Input dense, 3.33 stars high sustained
+## [Illusion city](https://gamebanana.com/mods/566229)
+> Flipside Cliffside gameplay, GM yellow
 
 # Todos mapping
 ## 6arb
