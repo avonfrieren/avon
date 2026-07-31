@@ -12,6 +12,12 @@
 ## [Hypersonic](https://gamebanana.com/mods/603441)
 > Input density, 1^ stars
 
+# Todos deathless
+## [Nightingale City](https://gamebanana.com/mods/573157)
+> Wall wavedash, t5
+## [The Lonely Desolate Dwarf](https://gamebanana.com/mods/648076)
+> Alterned gravity, t6
+
 # Todos mapping
 ## 6arb
 ### Berry repartition between levels to determine 6arb berry count
